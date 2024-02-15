@@ -66,7 +66,7 @@ class MyDataModule(pl.LightningDataModule):
 
         if not hasattr(self,"dataset"):
             self.dataset=load_dataset("wmt16", "de-en",
-                                 cache_dir=self.data_dir,
+                                #  cache_dir=self.data_dir,
                                  streaming=True,
                                  )
         #MAP ITEM -> [{'en' : item.split("|||")[0], 'zh' : item.split("|||")[1]} for item in self.dataset['train']['translation']]   
@@ -91,7 +91,7 @@ if __name__=="__main__":
     datalocation=args.data
     datamodule=MyDataModule(Cache_dir=datalocation,batch_size=2)
 
-    datamodule.prepare_data()
+    # datamodule.prepare_data()
     datamodule.setup()
     dl=datamodule.train_dataloader()
     for batch in tqdm(dl):
