@@ -10,14 +10,14 @@ class parser(HyperOptArgumentParser):
         self.opt_list("--batch_size", default=80, type=int)
         
         #INSERT YOUR OWN PARAMETERS HERE
-        self.opt_list("--codeversion",default=-1,options=[1,2,3,4,5,6])
+        self.opt_list("--LSAVersion",default=0,options=[1,2,3,4,5,6])
         self.opt_list("--precision", default=16, options=[16], tunable=False)
         self.opt_list("--accelerator", default='gpu', type=str, options=['gpu'], tunable=False)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
         #self.opt_range('--neurons', default=50, type=int, tunable=True, low=100, high=800, nb_samples=8, log_base=None)
         
         #This is important when passing arguments as **config in launcher
-        self.argNames=["dir","log_path","learning_rate","batch_size","modelname","precision","codeversion","accelerator","num_trials"]
+        self.argNames=["dir","log_path","learning_rate","batch_size","modelname","precision","LSAVersion","accelerator","num_trials"]
     def __dict__(self):
         return {k:self.parse_args().__dict__[k] for k in self.argNames}
 

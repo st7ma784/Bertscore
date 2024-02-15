@@ -8,29 +8,11 @@ def train(config={
         "batch_size":16, # ADD MODEL ARGS HERE
          "codeversion":"-1",        
     },dir=None,devices=None,accelerator=None,Dataset=None,logtool=None):
-    
-    #### EDIT HERE FOR DIFFERENT VERSIONS OF A MODEL
-     if codeversion==1:
-        from models.train import myLightningModule
-    elif codeversion==2:
-        from models.trainv2 import myLightningModule
-    elif codeversion==3:
-        from models.trainv3 import myLightningModule
-    elif codeversion==4:
-        from models.trainv4 import myLightningModule
-    elif codeversion==5:
-        from models.trainv5 import myLightningModule
-    elif codeversion==6:
-        from models.trainv6 import myLightningModule
-    else:
-        print("NO CODE VER SPECIFIED!!")
-        from models.train import myLightningModule
-
     model=myLightningModule(  **config)
     if dir is None:
         dir=config.get("dir",".")
     if Dataset is None:
-        from DataModule import *
+        from HFDataModule import *
         Dataset=MyDataModule(Cache_dir=dir,**config)
     if devices is None:
         devices=config.get("devices","auto")
