@@ -1,19 +1,36 @@
 
 import torch     
 import os
+from packaging import version
+
 import pytorch_lightning as pl
 from transformers import (
-  CLIPTokenizer
+  CLIPTokenizer,
+    GPT2Tokenizer,
+    RobertaTokenizer,
+
 )
-os.environ["TOKENIZERS_PARALLELISM"]='true'
+from datasets  import load_dataset
+
+import os
+from collections import Counter, defaultdict
+from itertools import chain
+from math import log
+from multiprocessing import Pool
+
+from transformers import __version__ as trans_version
+
+os.environ["self.tokenizerS_PARALLELISM"]='true'
 
 class MyDataModule(pl.LightningDataModule):
 
-    def __init__(self, Cache_dir='.', batch_size=256,ZHtokenizer=None,ENtokenizer=None):
+    def __init__(self, Cache_dir='.', batch_size=256,tokenizer=None):
         super().__init__()
         self.data_dir = Cache_dir
         self.batch_size = batch_size
-        self.Tokenizer =CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32",cache_dir=self.data_dir)
+        self.tokenizer =tokenizer
+        if self.tokenizer is None: 
+            self.tokenizer=CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32",cache_dir=self.data_dir)
     
     def train_dataloader(self, B=None):
         if B is None:
@@ -38,7 +55,6 @@ class MyDataModule(pl.LightningDataModule):
         
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir,exist_ok=True)
-        from datasets import load_dataset
         #2014 german to english
         self.dataset = load_dataset("wmt16", "de-en",
                                cache_dir=self.data_dir,
@@ -47,18 +63,127 @@ class MyDataModule(pl.LightningDataModule):
    
     def tokenization(self,sample):
 
-        return {'en' : self.tokenizer(sample["en"],padding="max_length",
-                            truncation=True,
-                            max_length=77,
-                            return_tensors="pt" 
-                            )["input_ids"],
-                'de' : self.tokenizer(sample["de"], 
-                            padding="max_length",
-                            truncation=True,
-                            max_length=77,
-                            return_tensors="pt" 
-                            )["input_ids"]}
-        
+        return self.collate_idf(sample["en"]),self.collate_idf(sample["de"]) 
+
+
+    def sent_encode(self, sent):
+        "Encoding as sentence based on the self.tokenizer"
+        sent = sent.strip()
+        if sent == "":
+            return self.self.tokenizer.build_inputs_with_special_tokens([])
+        elif isinstance(self.tokenizer, GPT2Tokenizer) or isinstance(self.tokenizer, RobertaTokenizer):
+            # for RoBERTa and GPT-2
+            if version.parse(trans_version) >= version.parse("4.0.0"):
+                return self.tokenizer.encode(
+                    sent,
+                    add_special_tokens=True,
+                    add_prefix_space=True,
+                    max_length=self.tokenizer.model_max_length,
+                    truncation=True,
+                )
+            elif version.parse(trans_version) >= version.parse("3.0.0"):
+                return self.tokenizer.encode(
+                    sent,
+                    add_special_tokens=True,
+                    add_prefix_space=True,
+                    max_length=self.tokenizer.max_len,
+                    truncation=True,
+                )
+            elif version.parse(trans_version) >= version.parse("2.0.0"):
+                return self.tokenizer.encode(
+                    sent,
+                    add_special_tokens=True,
+                    add_prefix_space=True,
+                    max_length=self.tokenizer.max_len,
+                )
+            else:
+                raise NotImplementedError(
+                    f"transformers version {trans_version} is not supported"
+                )
+        else:
+            if version.parse(trans_version) >= version.parse("4.0.0"):
+                return self.tokenizer.encode(
+                    sent,
+                    add_special_tokens=True,
+                    max_length=self.tokenizer.model_max_length,
+                    truncation=True,
+                )
+            elif version.parse(trans_version) >= version.parse("3.0.0"):
+                return self.tokenizer.encode(
+                    sent,
+                    add_special_tokens=True,
+                    max_length=self.tokenizer.max_len,
+                    truncation=True,
+                )
+            elif version.parse(trans_version) >= version.parse("2.0.0"):
+                return self.tokenizer.encode(
+                    sent, add_special_tokens=True, max_length=self.tokenizer.max_len
+                )
+            else:
+                raise NotImplementedError(
+                    f"transformers version {trans_version} is not supported"
+                )
+
+    def collate_idf(self,arr):
+        """
+        Helper function that pads a list of sentences to hvae the same length and
+        loads idf score for words in the sentences.
+
+        Args:
+            - :param: `arr` (list of str): sentences to process.
+            - :param: `tokenize` : a function that takes a string and return list
+                    of tokens.
+            - :param: `numericalize` : a function that takes a list of tokens and
+                    return list of token indexes.
+            - :param: `pad` (str): the padding token.
+            - :param: `device` (str): device to use, e.g. 'cpu' or 'cuda'
+        """
+        arr = [self.sent_encode(a) for a in arr]
+
+        idf_weights = [[self.idf_dict[i] for i in a] for a in arr]
+
+        pad_token = self.tokenizer.pad_token_id
+
+        padded, lens, mask = self.padding(arr, pad_token, dtype=torch.long)
+        padded_idf, _, _ = self.padding(idf_weights, 0, dtype=torch.float)
+
+        return padded, padded_idf, lens, mask
+
+    def padding(self, arr, pad_token, dtype=torch.long):
+        lens = torch.LongTensor([len(a) for a in arr])
+        max_len = lens.max().item()
+        padded = torch.ones(len(arr), max_len, dtype=dtype) * pad_token
+        mask = torch.zeros(len(arr), max_len, dtype=torch.long)
+        for i, a in enumerate(arr):
+            padded[i, : lens[i]] = torch.tensor(a, dtype=dtype)
+            mask[i, : lens[i]] = 1
+        return padded, lens, mask
+
+    def process(self,a):
+        if self.tokenizer is not None:
+            a = self.sent_encode(a)
+        return set(a)
+    def get_idf_dict(self, arr, nthreads=4):
+        """
+        Returns mapping from word piece index to its inverse document frequency.
+
+
+        Args:
+            - :param: `arr` (list of str) : sentences to process.
+            - :param: `self.tokenizer` : a BERT self.tokenizer corresponds to `model`.
+            - :param: `nthreads` (int) : number of CPU threads to use
+        """
+        idf_count = Counter()
+        num_docs = len(arr)
+        cpu_count=os.cpu_count()
+        with Pool(cpu_count) as p:
+            idf_count.update(chain.from_iterable(p.map(self.process, arr)))
+        idf_dict = defaultdict(lambda: log((num_docs + 1) / (1)))
+        idf_dict.update(
+            {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
+        )
+        self.idf_dict=idf_dict
+
     def setup(self, stage=None):
         '''called on each GPU separately - stage defines if we are at fit or test step'''
         #print("Entered COCO datasetup")
@@ -66,9 +191,10 @@ class MyDataModule(pl.LightningDataModule):
 
         if not hasattr(self,"dataset"):
             self.dataset=load_dataset("wmt16", "de-en",
-                                #  cache_dir=self.data_dir,
-                                 streaming=True,
-                                 )
+                               cache_dir=self.data_dir,
+                               streaming=True,)
+        #get the idf dictionary
+            self.get_idf_dict(self.dataset['train']['translation']['en'])
         #MAP ITEM -> [{'en' : item.split("|||")[0], 'zh' : item.split("|||")[1]} for item in self.dataset['train']['translation']]   
         reformatted_dataset = self.dataset["train"].map(lambda x: {'en' : x["text"].split("|||")[0], 'de' : x["text"].split("|||")[1]})
         #remove the old "text" column
@@ -91,8 +217,9 @@ if __name__=="__main__":
     datalocation=args.data
     datamodule=MyDataModule(Cache_dir=datalocation,batch_size=2)
 
-    # datamodule.prepare_data()
+    datamodule.prepare_data()
     datamodule.setup()
     dl=datamodule.train_dataloader()
     for batch in tqdm(dl):
         print(batch)
+

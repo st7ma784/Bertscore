@@ -8,11 +8,12 @@ def train(config={
         "batch_size":16, # ADD MODEL ARGS HERE
          "codeversion":"-1",        
     },dir=None,devices=None,accelerator=None,Dataset=None,logtool=None):
+    from models.train import myLightningModule
     model=myLightningModule(  **config)
     if dir is None:
         dir=config.get("dir",".")
     if Dataset is None:
-        from HFDataModule import *
+        from HFDataModuleExample import *
         Dataset=MyDataModule(Cache_dir=dir,**config)
     if devices is None:
         devices=config.get("devices","auto")
@@ -57,15 +58,15 @@ def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
     if config is not None:
         config=config.__dict__
         dir=config.get("dir",dir)
-        logtool= pytorch_lightning.loggers.WandbLogger( project="<PROJECTNAME>",entity="<WANDBUSER>", save_dir=dir)
+        logtool= pytorch_lightning.loggers.WandbLogger( project="BertScore",entity="st7ma784", save_dir=dir)
         print(config)
 
     else: 
         #We've got no config, so we'll just use the default, and hopefully a trainAgent has been passed
         import wandb
         print("Would recommend changing projectname according to config flags if major version swithching happens")
-        run=wandb.init(project="<PROJECTNAME>",entity="<WANDBUSER>",name="<PROJECTNAME>",config=config)
-        logtool= pytorch_lightning.loggers.WandbLogger( project="<PROJECTNAME>",entity="<WANDBUSER>",experiment=run, save_dir=dir)
+        run=wandb.init(project="BertScore",entity="st7ma784",name="BertScore",config=config)
+        logtool= pytorch_lightning.loggers.WandbLogger( project="BertScore",entity="st7ma784",experiment=run, save_dir=dir)
         config=run.config.as_dict()
     
     train(config,dir,devices,accelerator,Dataset,logtool)
