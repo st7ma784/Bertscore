@@ -6,13 +6,14 @@ class parser(HyperOptArgumentParser):
         super().__init__( *args,strategy=strategy, add_help=False) # or random search
         self.add_argument("--dir",default="/nobackup/projects/<YOURBEDEPROJECT>/$USER/data",type=str)
         self.add_argument("--log_path",default="/nobackup/projects/<YOURBEDEPROJECT>/$USER/logs/",type=str)
-        self.opt_list("--learning_rate", default=0.0001, type=float, options=[2e-4,1e-4,5e-5,1e-5,4e-6], tunable=True)
+        # self.opt_list("--learning_rate", default=0.0001, type=float, options=[2e-4,1e-4,5e-5,1e-5,4e-6], tunable=True)
         self.opt_list("--batch_size", default=80, type=int)
         
         #INSERT YOUR OWN PARAMETERS HERE
         self.opt_list("--LSAVersion",default=0,options=[1,2,3,4,5,6])
-        self.opt_list("--precision", default=16, options=[16], tunable=False)
-        self.opt_list("--accelerator", default='gpu', type=str, options=['gpu'], tunable=False)
+        self.opt_list("--all_layers", default=False, options=[True,False], tunable=True)
+        self.opt_list("--perfect_match", default=False, options=[True,False], tunable=True)
+        self.opt_list("--accelerator", default='gpu', type=str, options=['gpu'], tunable=True)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
         #self.opt_range('--neurons', default=50, type=int, tunable=True, low=100, high=800, nb_samples=8, log_base=None)
         

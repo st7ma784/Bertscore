@@ -9,12 +9,32 @@ def train(config={
          "codeversion":"-1",        
     },dir=None,devices=None,accelerator=None,Dataset=None,logtool=None):
     from models.train import myLightningModule
-    model=myLightningModule(  **config)
+
+    #get model name from the config 
+    #get the tokenizer from config too
+    #initialize the hf model and autotokenizer from the names provided. 
+
+    #pass the model to the lightning module, and the tokenizer to the datamodule
+    model=None
+    tokenizer=None
+    model_name_or_path=config.get("modelname",None)
+    if model_name_or_path is not None:
+        from transformers import AutoModel, AutoTokenizer
+        model = AutoModel.from_pretrained(model_name_or_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+
+
+
+
     if dir is None:
         dir=config.get("dir",".")
     if Dataset is None:
         from HFDataModuleExample import *
-        Dataset=MyDataModule(Cache_dir=dir,**config)
+        Dataset=MyDataModule(Cache_dir=dir,tokenizer=tokenizer,**config)
+        Dataset.prepare_data()
+        idf_dict=Dataset.idf_dict
+    model=myLightningModule(model=model,idf_dict=idf_dict, **config)
+
     if devices is None:
         devices=config.get("devices","auto")
     if accelerator is None:
@@ -23,7 +43,6 @@ def train(config={
     Dataset.batch_size=config["batch_size"]
     callbacks=[
         TQDMProgressBar(),
-        EarlyStopping(monitor="train_loss", mode="min",patience=10,check_finite=True,stopping_threshold=0.001),
     ]
     p=config['precision']
     if isinstance(p,str):
@@ -37,13 +56,12 @@ def train(config={
             devices=devices,
             # auto_select_gpus=True,
             accelerator=accelerator,
-            max_epochs=200,
+            max_epochs=1,
             #profiler="advanced",
             logger=logtool,
             strategy="ddp",
             num_nodes=int(os.getenv("SLURM_NNODES",1)),
             callbacks=callbacks,
-            gradient_clip_val=0.25,# Not supported for manual optimization
             fast_dev_run=False,
             precision=p
     )

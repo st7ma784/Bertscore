@@ -7,17 +7,14 @@ import pytorch_lightning as pl
 from transformers import (
   CLIPTokenizer,
     GPT2Tokenizer,
-    RobertaTokenizer,
-
+    RobertaTokenizer
 )
 from datasets  import load_dataset
-
-import os
 from collections import Counter, defaultdict
 from itertools import chain
 from math import log
 from multiprocessing import Pool
-
+from functools import partial
 from transformers import __version__ as trans_version
 
 os.environ["self.tokenizerS_PARALLELISM"]='true'
@@ -31,7 +28,30 @@ class MyDataModule(pl.LightningDataModule):
         self.tokenizer =tokenizer
         if self.tokenizer is None: 
             self.tokenizer=CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32",cache_dir=self.data_dir)
-    
+        if isinstance(self.tokenizer, GPT2Tokenizer) or isinstance(self.tokenizer, RobertaTokenizer):
+            # for RoBERTa and GPT-2
+            if version.parse(trans_version) >= version.parse("4.0.0"):
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.tokenizer.model_max_length, truncation=True)
+
+            elif version.parse(trans_version) >= version.parse("3.0.0"):
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, add_prefix_space=True, max_length=self.tokenizer.max_len, truncation=True,
+                    )
+
+            elif version.parse(trans_version) >= version.parse("2.0.0"):
+                self.tokenize=partial(self.tokenizer.encode,add_special_tokens=True,add_prefix_space=True,max_length=self.tokenizer.max_len,)
+            else:
+                raise NotImplementedError( "transformers version {trans_version} is not supported")
+        else:
+            if version.parse(trans_version) >= version.parse("4.0.0"):
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.tokenizer.model_max_length, truncation=True)
+            elif version.parse(trans_version) >= version.parse("3.0.0"):
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.tokenizer.max_len, truncation=True,)
+            elif version.parse(trans_version) >= version.parse("2.0.0"):
+                 self.tokenize=partial(self.tokenizer.encode,add_special_tokens=True, max_length=self.tokenizer.max_len)
+            else:
+                raise NotImplementedError(
+                    f"transformers version {trans_version} is not supported"
+                )
     def train_dataloader(self, B=None):
         if B is None:
             B=self.batch_size 
@@ -60,69 +80,20 @@ class MyDataModule(pl.LightningDataModule):
                                cache_dir=self.data_dir,
                                streaming=False,
                                )
-   
+        self.get_idf_dict(self.dataset['train'])
+
     def tokenization(self,sample):
 
-        return self.collate_idf(sample["en"]),self.collate_idf(sample["de"]) 
-
+        return self.collate_idf(sample)
 
     def sent_encode(self, sent):
         "Encoding as sentence based on the self.tokenizer"
         sent = sent.strip()
         if sent == "":
-            return self.self.tokenizer.build_inputs_with_special_tokens([])
-        elif isinstance(self.tokenizer, GPT2Tokenizer) or isinstance(self.tokenizer, RobertaTokenizer):
-            # for RoBERTa and GPT-2
-            if version.parse(trans_version) >= version.parse("4.0.0"):
-                return self.tokenizer.encode(
-                    sent,
-                    add_special_tokens=True,
-                    add_prefix_space=True,
-                    max_length=self.tokenizer.model_max_length,
-                    truncation=True,
-                )
-            elif version.parse(trans_version) >= version.parse("3.0.0"):
-                return self.tokenizer.encode(
-                    sent,
-                    add_special_tokens=True,
-                    add_prefix_space=True,
-                    max_length=self.tokenizer.max_len,
-                    truncation=True,
-                )
-            elif version.parse(trans_version) >= version.parse("2.0.0"):
-                return self.tokenizer.encode(
-                    sent,
-                    add_special_tokens=True,
-                    add_prefix_space=True,
-                    max_length=self.tokenizer.max_len,
-                )
-            else:
-                raise NotImplementedError(
-                    f"transformers version {trans_version} is not supported"
-                )
-        else:
-            if version.parse(trans_version) >= version.parse("4.0.0"):
-                return self.tokenizer.encode(
-                    sent,
-                    add_special_tokens=True,
-                    max_length=self.tokenizer.model_max_length,
-                    truncation=True,
-                )
-            elif version.parse(trans_version) >= version.parse("3.0.0"):
-                return self.tokenizer.encode(
-                    sent,
-                    add_special_tokens=True,
-                    max_length=self.tokenizer.max_len,
-                    truncation=True,
-                )
-            elif version.parse(trans_version) >= version.parse("2.0.0"):
-                return self.tokenizer.encode(
-                    sent, add_special_tokens=True, max_length=self.tokenizer.max_len
-                )
-            else:
-                raise NotImplementedError(
-                    f"transformers version {trans_version} is not supported"
-                )
+            print("here!")
+            return self.tokenizer.build_inputs_with_special_tokens([])
+        return self.tokenize(sent)
+       
 
     def collate_idf(self,arr):
         """
@@ -131,24 +102,40 @@ class MyDataModule(pl.LightningDataModule):
 
         Args:
             - :param: `arr` (list of str): sentences to process.
-            - :param: `tokenize` : a function that takes a string and return list
-                    of tokens.
             - :param: `numericalize` : a function that takes a list of tokens and
                     return list of token indexes.
-            - :param: `pad` (str): the padding token.
-            - :param: `device` (str): device to use, e.g. 'cpu' or 'cuda'
         """
-        arr = [self.sent_encode(a) for a in arr]
-
-        idf_weights = [[self.idf_dict[i] for i in a] for a in arr]
-
+        # print(arr) #len is 1?
+        # for a in arr:
+        #     if isinstance(a,str):
+        #         print(a)
+        #     if isinstance(a,dict):
+        #         if "translation" in a:
+        #             print("translation",a["translation"])
+                
+        arr = [(self.sent_encode(a["en"]),
+                   self.sent_encode(a["de"]))
+                    if ("en" in a and
+                     "de" in a) else (None,None) for a in arr["translation"]
+]
+        [arr_en,arr_de] = zip(*arr)
+        idf_weights_en = [[self.idf_dict[i] for i in a] for a in arr_en]
+        idf_weights_de = [[self.idf_dict[i] for i in a] for a in arr_de]
         pad_token = self.tokenizer.pad_token_id
 
-        padded, lens, mask = self.padding(arr, pad_token, dtype=torch.long)
-        padded_idf, _, _ = self.padding(idf_weights, 0, dtype=torch.float)
-
-        return padded, padded_idf, lens, mask
-
+        padded_en, lens_en, mask_en = self.padding(arr_en, pad_token, dtype=torch.long)
+        padded_idf_en, _, _ = self.padding(idf_weights_en, 0, dtype=torch.float)
+        padded_de, lens_de, mask_de = self.padding(arr_de, pad_token, dtype=torch.long)
+        padded_idf_de, _, _ = self.padding(idf_weights_de, 0, dtype=torch.float)
+        return {
+            "padded_en":  padded_en,
+            "padded_idf_en":padded_idf_en,
+            "mask_en":mask_en,
+            "padded_de": padded_de,
+            "padded_idf_de":padded_idf_de,
+            "mask_de":mask_de,
+            
+        }
     def padding(self, arr, pad_token, dtype=torch.long):
         lens = torch.LongTensor([len(a) for a in arr])
         max_len = lens.max().item()
@@ -161,9 +148,15 @@ class MyDataModule(pl.LightningDataModule):
 
     def process(self,a):
         if self.tokenizer is not None:
-            a = self.sent_encode(a)
-        return set(a)
-    def get_idf_dict(self, arr, nthreads=4):
+            output=set()
+
+            for key in a["translation"].keys():
+                
+                k= self.sent_encode(a["translation"][key])
+                # print("{} : {}".format(key,k))
+                output.update(k)
+        return output
+    def get_idf_dict(self, arr):
         """
         Returns mapping from word piece index to its inverse document frequency.
 
@@ -194,15 +187,15 @@ class MyDataModule(pl.LightningDataModule):
                                cache_dir=self.data_dir,
                                streaming=True,)
         #get the idf dictionary
-            self.get_idf_dict(self.dataset['train']['translation']['en'])
+            self.get_idf_dict(self.dataset['train'])
         #MAP ITEM -> [{'en' : item.split("|||")[0], 'zh' : item.split("|||")[1]} for item in self.dataset['train']['translation']]   
-        reformatted_dataset = self.dataset["train"].map(lambda x: {'en' : x["text"].split("|||")[0], 'de' : x["text"].split("|||")[1]})
+        # reformatted_dataset = self.dataset["train"].map(lambda x: {'en' : x["text"].split("|||")[0], 'de' : x["text"].split("|||")[1]})
         #remove the old "text" column
-        reformatted_dataset.remove_columns("text")
+        # reformatted_dataset.remove_columns("text")
         #tokenize the reformatted dataset
-        self.train=reformatted_dataset.map(lambda x: self.tokenization(x), batched=True)
-        self.val=reformatted_dataset.map(lambda x: self.tokenization(x), batched=True)
-        self.test = reformatted_dataset.map(lambda x: self.tokenization(x), batched=True)
+        self.train=self.dataset['train'].map(lambda x: self.tokenization(x), batched=True)
+        self.val=self.train
+        self.test=self.train
         
         
 if __name__=="__main__":

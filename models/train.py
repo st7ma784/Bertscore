@@ -10,10 +10,11 @@ class myLightningModule(LightningModule):
 
     def __init__(self,
                  
-                tokenizer: Optional[object] = None, #The tokenizer to use
                 model: Optional[torch.nn.Module] = None, #The bertscore model to use
                 LSAVersion: Optional[int] = 0, #The LSA version to use
                 all_layers=False,
+                perfect_match=False,
+                idf_dict={},
                 **kwargs,
                 ):
         super().__init__()
@@ -22,10 +23,9 @@ class myLightningModule(LightningModule):
         self.lsa_algorithm=self.algorithms[LSAVersion]
         #self.lsa_algorithm should take a matrix and return a one_hot vector of the same shape.
         self.model=model
-        self.tokenizer=tokenizer
         self.all_layers=all_layers
-        self.idf_dict=None
-
+        self.idf_dict=idf_dict
+        self.shuffle=perfect_match
         
     def no_lsa(self,tensor):
         return torch.ones_like(tensor)
@@ -50,27 +50,59 @@ class myLightningModule(LightningModule):
         """
         self.preds = []
 
+    def shuffle_batch(self, sen_batch, idf_batch, mask_batch):
+        """
+        Shuffle the batch for negative sampling.
+        Args:
+            - :param: `sen_batch` (torch.LongTensor): BxK, batch of sentences
+            - :param: `idf_batch` (torch.Tensor): BxK, batch of idf scores
+            - :param: `mask_batch` (torch.LongTensor): BxK, batch of masks
+        """
+        B, K = sen_batch.size()
+        idx = torch.randperm(B)
+        return sen_batch[idx], idf_batch[idx], mask_batch[idx]
     def training_step(self, batch, batch_idx,optimizer_idx=0):
+
+        Hpadded_sens=batch["padded_en"]
+        Hpadded_idf=batch["padded_idf_en"]
+        Hmasks=batch["mask_en"]
+        Rpadded_sens=batch["padded_de"]
+        Rpadded_idf=batch["padded_idf_de"]
+        Rmasks=batch["mask_de"]
         
-        (Hpadded_sens, Hpadded_idf, _, Hmasks),(Rpadded_sens, Rpadded_idf, _, Rmasks)=batch
-    
+        if self.shuffle:
+            Hpadded_sens, Hpadded_idf, Hmasks = self.shuffle_batch(Hpadded_sens, Hpadded_idf, Hmasks)
+
+
+
         Hembs = self.bert_encode(
             Hpadded_sens,
             attention_mask=Hmasks,
         )
-
         Rembs = self.bert_encode(
             Rpadded_sens,
             attention_mask=Rmasks,
         )
+        
+
         P, R, F1 = self.greedy_cos_idf(Hembs, Hmasks, Hpadded_idf, Rembs, Rmasks, Rpadded_idf)        
         preds.append(torch.stack((P, R, F1), dim=-1).cpu())
         preds = torch.cat(preds, dim=1 if self.all_layers else 0)
         self.log("P",P)
         self.log("R",R)
         self.log("F1",F1)
-
         return preds
+
+    def on_train_epoch_end(self, *args, **kwargs):
+        """
+        Log BERTScore to tensorboard.
+        """
+        preds = torch.cat(self.preds, dim=1 if self.all_layers else 0)
+        self.log("e_P",preds[0].mean())
+        self.log("e_R",preds[1].mean())
+        self.log("e_F1",preds[2].mean())
+
+
 
     def greedy_cos_idf(
         self,

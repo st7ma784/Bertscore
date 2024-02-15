@@ -66,7 +66,7 @@ def get_all_LSA_fns():
         #outputconversion(no_for_loop_v3_triu_MyLinearSumAssignment),
         "recursive fn":outputconversion(recursiveLinearSumAssignment),
         "recursive fn2 ":outputconversion(recursiveLinearSumAssignment_v2),
-        "recursive fn5":recursiveLinearSumAssignment_v5,
+        "recursive fn5":outputconversion(recursiveLinearSumAssignment_v5),
         #outputconversion(recursiveLinearSumAssignment_v3),
         #outputconversion(recursiveLinearSumAssignment_v4),
         "stock":outputconversion(linear_sum_assignment),
