@@ -7,3 +7,4 @@ matplotlib
 test_tube
 pycocotools
 bert_score
+datasets
