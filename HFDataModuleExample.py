@@ -167,17 +167,27 @@ class MyDataModule(pl.LightningDataModule):
             - :param: `self.tokenizer` : a BERT self.tokenizer corresponds to `model`.
             - :param: `nthreads` (int) : number of CPU threads to use
         """
+        tokenizername = type(self.tokenizer).__name__
+        split_name="wmt16de-en"
+        #check for existing idf_dict
+        if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict.pt"):
+            self.idf_dict=torch.load(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict.pt")
+            return
         idf_count = Counter()
         num_docs = len(arr)
-        cpu_count=os.cpu_count()
-        with Pool(cpu_count) as p:
-            idf_count.update(chain.from_iterable(p.map(self.process, arr)))
+        # cpu_count=os.cpu_count()
+        # with Pool(cpu_count) as p:
+        #use map instead
+        idf_count.update(chain.from_iterable(map(self.process, arr)))
+#       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
         idf_dict = defaultdict(lambda: log((num_docs + 1) / (1)))
         idf_dict.update(
             {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
         )
         self.idf_dict=idf_dict
-
+        #save the idf_dict
+        torch.save(self.idf_dict,f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict.pt")
+        
     def setup(self, stage=None):
         '''called on each GPU separately - stage defines if we are at fit or test step'''
         #print("Entered COCO datasetup")
