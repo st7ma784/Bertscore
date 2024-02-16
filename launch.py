@@ -68,6 +68,7 @@ def train(config={
 #### This is a wrapper to make sure we log with Weights and Biases, You'll need your own user for this. 
 def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
     if config is not None:
+        import wandb
         config=config.__dict__
         dir=config.get("dir",dir)
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
