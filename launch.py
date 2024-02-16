@@ -69,13 +69,17 @@ def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
     if config is not None:
         config=config.__dict__
         dir=config.get("dir",dir)
+        wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
+        run=wandb.init(project="BertScore",entity="st7ma784",name="BertScore",config=config)
+
         logtool= pytorch_lightning.loggers.WandbLogger( project="BertScore",entity="st7ma784", save_dir=dir)
         print(config)
 
     else: 
         #We've got no config, so we'll just use the default, and hopefully a trainAgent has been passed
         import wandb
-        print("Would recommend changing projectname according to config flags if major version swithching happens")
+        print("here")
+        wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
         run=wandb.init(project="BertScore",entity="st7ma784",name="BertScore",config=config)
         logtool= pytorch_lightning.loggers.WandbLogger( project="BertScore",entity="st7ma784",experiment=run, save_dir=dir)
         config=run.config.as_dict()
@@ -94,15 +98,15 @@ def SlurmRun(trialconfig):
         '#SBATCH --gres=gpu:1',  #{}'.format(per_experiment_nb_gpus),
         f'#SBATCH --signal=USR1@{5 * 60}',
         '#SBATCH --mail-type={}'.format(','.join(['END','FAIL'])),
-        '#SBATCH --mail-user={}'.format('YOURMAIL@gmail.com'),
+        '#SBATCH --mail-user={}'.format('st7ma784@gmail.com'),
     ]
     comm="python"
     slurm_commands={}
 
     if str(os.getenv("HOSTNAME","localhost")).endswith("bede.dur.ac.uk"):
         sub_commands.extend([
-                '#SBATCH --account MYACOCUNT',
-                'export CONDADIR=/nobackup/projects/<BEDEPROJECT>/$USER/miniconda',
+                '#SBATCH --account bdlan05',
+                'export CONDADIR=/nobackup/projects/bdlan05/$USER/miniconda',
                 'export NCCL_SOCKET_IFNAME=ib0'])
         comm="python3"
     else: 
@@ -111,7 +115,7 @@ def SlurmRun(trialconfig):
     sub_commands.extend([ '#SBATCH --{}={}\n'.format(cmd, value) for  (cmd, value) in slurm_commands.items()])
     sub_commands.extend([
         'export SLURM_NNODES=$SLURM_JOB_NUM_NODES',
-        'export wandb=<YOURWANDBAPIKEY>',
+        'export wandb=9cf7e97e2460c18a89429deed624ec1cbfb537bc',
         'source $CONDADIR/etc/profile.d/conda.sh',
         'conda activate $CONDADIR/envs/open-ce',# ...and activate the conda environment
     ])
