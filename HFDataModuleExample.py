@@ -61,12 +61,12 @@ class MyDataModule(pl.LightningDataModule):
         if B is None:
             B=self.batch_size
     
-        return torch.utils.data.DataLoader(self.val, batch_size=B, shuffle=False, num_workers=2, prefetch_factor=2, pin_memory=True,drop_last=True)
+        return torch.utils.data.DataLoader(self.val, batch_size=B, shuffle=False, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=True)
     
     def test_dataloader(self,B=None):
         if B is None:
             B=self.batch_size
-        return torch.utils.data.DataLoader(self.test, batch_size=B, shuffle=True, num_workers=1, prefetch_factor=1, pin_memory=True,drop_last=True)
+        return torch.utils.data.DataLoader(self.test, batch_size=B, shuffle=True, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=True)
     
     def prepare_data(self):
 
@@ -81,8 +81,7 @@ class MyDataModule(pl.LightningDataModule):
                                streaming=False,
                                )
         self.get_idf_dict(self.dataset['train'])
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.02)
+
     def tokenization(self,sample):
 
         return self.collate_idf(sample)
@@ -185,6 +184,7 @@ class MyDataModule(pl.LightningDataModule):
                 idf_count.update(tokens)
 #       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
         idf_dict = {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
+        print(idf_dict)
         with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "w") as f:
             json.dump(idf_dict,f)
         self.idf_dict.update(idf_dict)
@@ -209,7 +209,11 @@ class MyDataModule(pl.LightningDataModule):
         self.train=self.dataset['train'].map(lambda x: self.tokenization(x), batched=True)
         self.val=self.train
         self.test=self.train
-        
+        #remove the old "text" column
+        self.train.remove_columns("translation")
+        self.val.remove_columns("translation")
+        self.test.remove_columns("translation")
+        print(self.train.column_names)
         
 if __name__=="__main__":
 
