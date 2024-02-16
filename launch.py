@@ -2,13 +2,15 @@
 import pytorch_lightning
 from pytorch_lightning.callbacks import TQDMProgressBar,EarlyStopping
 import os,sys
+from HFDataModuleExample import MyDataModule
+from models.train import myLightningModule
+from transformers import AutoModel, AutoTokenizer
 
 #### This is our launch function, which builds the dataset, and then runs the model on it. 
 def train(config={
         "batch_size":16, # ADD MODEL ARGS HERE
          "codeversion":"-1",        
     },dir=None,devices=None,accelerator=None,Dataset=None,logtool=None):
-    from models.train import myLightningModule
 
     #get model name from the config 
     #get the tokenizer from config too
@@ -19,7 +21,6 @@ def train(config={
     tokenizer=None
     model_name_or_path=config.get("modelname",None)
     if model_name_or_path is not None:
-        from transformers import AutoModel, AutoTokenizer
         model = AutoModel.from_pretrained(model_name_or_path)
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
 
@@ -29,7 +30,6 @@ def train(config={
     if dir is None:
         dir=config.get("dir",".")
     if Dataset is None:
-        from HFDataModuleExample import *
         Dataset=MyDataModule(Cache_dir=dir,tokenizer=tokenizer,**config)
         Dataset.prepare_data()
         idf_dict=Dataset.idf_dict
@@ -166,7 +166,7 @@ def __should_escape(v):
     v = str(v)
     return '[' in v or ';' in v or ' ' in v
 if __name__ == '__main__':
-    from argParser import parser
+    from demoparse import parser
     from subprocess import call
 
     myparser=parser()

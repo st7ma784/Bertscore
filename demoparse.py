@@ -10,13 +10,25 @@ class parser(HyperOptArgumentParser):
         self.opt_list("--batch_size", default=80, type=int)
         
         #INSERT YOUR OWN PARAMETERS HERE
-        self.opt_list("--LSAVersion",default=0,options=[1,2,3,4,5,6])
+        from lsafunctions import get_all_LSA_fns
+        lsakeys=list(get_all_LSA_fns().keys())
+        self.opt_list("--LSAVersion",default="none",options=["none"]+lsakeys, tunable=True)
         self.opt_list("--all_layers", default=False, options=[True,False], tunable=True)
         self.opt_list("--perfect_match", default=False, options=[True,False], tunable=True)
         self.opt_list("--accelerator", default='gpu', type=str, options=['gpu'], tunable=True)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
-        #self.opt_range('--neurons', default=50, type=int, tunable=True, low=100, high=800, nb_samples=8, log_base=None)
-        
+        #which model to use as inspired by the list on the bertscore github
+
+        self.opt_list("--modelname", default="bert-base-uncased", type=str, options=["bert-base-uncased",
+                                                                                    "roberta-base",
+                                                                                    "xlm-roberta-base",
+                                                                                    "distilbert-base-uncased",
+                                                                                    "albert-base-v2",
+                                                                                    "xlnet-base-cased",
+                                                                                    # "xml-roberta-large",
+                                                                                    "t5-small",
+                                                                                    "facebook/bart-base",], tunable=True)
+                                                                                    
         #This is important when passing arguments as **config in launcher
         self.argNames=["dir","log_path","learning_rate","batch_size","modelname","precision","LSAVersion","accelerator","num_trials"]
     def __dict__(self):

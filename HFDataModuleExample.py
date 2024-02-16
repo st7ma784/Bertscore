@@ -21,7 +21,7 @@ os.environ["self.tokenizerS_PARALLELISM"]='true'
 
 class MyDataModule(pl.LightningDataModule):
 
-    def __init__(self, Cache_dir='.', batch_size=256,tokenizer=None):
+    def __init__(self, Cache_dir='.', batch_size=256,tokenizer=None,**kwargs):
         super().__init__()
         self.data_dir = Cache_dir
         self.batch_size = batch_size

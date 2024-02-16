@@ -19,7 +19,7 @@ class myLightningModule(LightningModule):
                 ):
         super().__init__()
         self.algorithms=get_all_LSA_fns()
-        self.algorithms.update({0:self.no_lsa})
+        self.algorithms.update({"none":self.no_lsa})
         self.lsa_algorithm=self.algorithms[LSAVersion]
         #self.lsa_algorithm should take a matrix and return a one_hot vector of the same shape.
         self.model=model
@@ -121,7 +121,6 @@ class myLightningModule(LightningModule):
             - :param: `ref_embedding` (torch.Tensor):
                     embeddings of reference sentences, BxKxd,
                     B: batch size, K: longest length, d: bert dimenison
-            - :param: `ref_lens` (list of int): list of reference sentence length.
             - :param: `ref_masks` (torch.LongTensor): BxKxK, BERT attention mask for
                     reference sentences.
             - :param: `ref_idf` (torch.Tensor): BxK, idf score of each word
@@ -129,7 +128,6 @@ class myLightningModule(LightningModule):
             - :param: `hyp_embedding` (torch.Tensor):
                     embeddings of candidate sentences, BxKxd,
                     B: batch size, K: longest length, d: bert dimenison
-            - :param: `hyp_lens` (list of int): list of candidate sentence length.
             - :param: `hyp_masks` (torch.LongTensor): BxKxK, BERT attention mask for
                     candidate sentences.
             - :param: `hyp_idf` (torch.Tensor): BxK, idf score of each word
@@ -201,23 +199,23 @@ class myLightningModule(LightningModule):
         return P, R, F
 
 
-    def pad_batch_stats(self,sen_batch, stats_dict):
-        stats = [stats_dict[s] for s in sen_batch]
-        emb, idf = zip(*stats)
-        emb = [e.to(self.device) for e in emb]
-        idf = [i.to(self.device) for i in idf]
-        lens = [e.size(0) for e in emb]
-        emb_pad = pad_sequence(emb, batch_first=True, padding_value=2.0)
-        idf_pad = pad_sequence(idf, batch_first=True)
+    # def pad_batch_stats(self,sen_batch, stats_dict):
+    #     stats = [stats_dict[s] for s in sen_batch]
+    #     emb, idf = zip(*stats)
+    #     emb = [e.to(self.device) for e in emb]
+    #     idf = [i.to(self.device) for i in idf]
+    #     lens = [e.size(0) for e in emb]
+    #     emb_pad = pad_sequence(emb, batch_first=True, padding_value=2.0)
+    #     idf_pad = pad_sequence(idf, batch_first=True)
 
-        def length_to_mask(lens):
-            lens = torch.tensor(lens, dtype=torch.long)
-            max_len = max(lens)
-            base = torch.arange(max_len, dtype=torch.long).expand(len(lens), max_len)
-            return base < lens.unsqueeze(1)
+    #     def length_to_mask(lens):
+    #         lens = torch.tensor(lens, dtype=torch.long)
+    #         max_len = max(lens)
+    #         base = torch.arange(max_len, dtype=torch.long).expand(len(lens), max_len)
+    #         return base < lens.unsqueeze(1)
 
-        pad_mask = length_to_mask(lens).to(self.device)
-        return emb_pad, pad_mask, idf_pad
+    #     pad_mask = length_to_mask(lens).to(self.device)
+    #     return emb_pad, pad_mask, idf_pad
     
 
 
