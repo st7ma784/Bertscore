@@ -2,6 +2,7 @@
 import pytorch_lightning
 from pytorch_lightning.callbacks import TQDMProgressBar,EarlyStopping
 import os,sys
+import wandb
 from HFDataModuleExample import MyDataModule
 from models.train import myLightningModule
 from transformers import AutoModel, AutoTokenizer
