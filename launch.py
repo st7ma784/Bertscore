@@ -44,10 +44,6 @@ def train(config={
     callbacks=[
         TQDMProgressBar(),
     ]
-    p=config['precision']
-    if isinstance(p,str):
-        p=16 if p=="bf16" else int(p)  ##needed for BEDE
-    print("Launching with precision",p)
 
     #workaround for NCCL issues on windows 
     if sys.platform == "win32":
@@ -63,7 +59,7 @@ def train(config={
             num_nodes=int(os.getenv("SLURM_NNODES",1)),
             callbacks=callbacks,
             fast_dev_run=False,
-            precision=p
+            precision=32
     )
     if config["batch_size"] !=1:
         
