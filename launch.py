@@ -195,6 +195,7 @@ if __name__ == '__main__':
 
         for i,trial in enumerate(trials):             
             command=SlurmRun(trial)
+            os.makedirs(os.path.join(defaultConfig.get("dir","."),"BERTSCORER"),exist_ok=True)
             slurm_cmd_script_path =  os.path.join(defaultConfig.get("dir","."),"BERTSCORER","slurm_cmdtrial{}.sh".format(i))
 
             with open(slurm_cmd_script_path, "w") as f:
