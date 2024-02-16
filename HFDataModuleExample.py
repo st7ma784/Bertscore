@@ -178,7 +178,8 @@ class MyDataModule(pl.LightningDataModule):
         # cpu_count=os.cpu_count()
         # with Pool(cpu_count) as p:
         #use map instead
-        idf_count.update(chain.from_iterable(map(self.process, arr)))
+        for a in arr:
+            idf_count.update(self.process(a))
 #       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
         idf_dict = defaultdict(lambda: log((num_docs + 1) / (1)))
         idf_dict.update(
