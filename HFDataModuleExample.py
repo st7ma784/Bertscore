@@ -16,9 +16,9 @@ from math import log
 from multiprocessing import Pool
 from functools import partial
 from transformers import __version__ as trans_version
-
+from tqdm import tqdm
 os.environ["self.tokenizerS_PARALLELISM"]='true'
-
+import json
 class MyDataModule(pl.LightningDataModule):
 
     def __init__(self, Cache_dir='.', batch_size=256,tokenizer=None,**kwargs):
@@ -94,7 +94,9 @@ class MyDataModule(pl.LightningDataModule):
             print("here!")
             return self.tokenizer.build_inputs_with_special_tokens([])
         return self.tokenize(sent)
-       
+    def batch_encode(self, sents):
+        "Encoding as batch based on the self.tokenizer"
+        return [self.sent_encode(sent) for sent in sents]
 
     def collate_idf(self,arr):
         """
@@ -148,15 +150,11 @@ class MyDataModule(pl.LightningDataModule):
         return padded, lens, mask
 
     def process(self,a):
-        if self.tokenizer is not None:
-            output=set()
-
-            for key in a["translation"].keys():
+                  
+    
+        return chain.from_iterable([ self.batch_encode(a["translation"][key]) for key in a["translation"].keys()])
+               
                 
-                k= self.sent_encode(a["translation"][key])
-                # print("{} : {}".format(key,k))
-                output.update(k)
-        return output
     def get_idf_dict(self, arr):
         """
         Returns mapping from word piece index to its inverse document frequency.
@@ -170,25 +168,28 @@ class MyDataModule(pl.LightningDataModule):
         tokenizername = type(self.tokenizer).__name__
         split_name="wmt16de-en"
         #check for existing idf_dict
-        if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict.pt"):
-            self.idf_dict=torch.load(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict.pt")
+        self.idf_dict=defaultdict(lambda: log((len(arr) + 1) / len(arr)))
+        if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json"):
+            with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "r") as f:
+                idf_dict=json.load(f)
+                self.idf_dict.update(idf_dict)
             return
         idf_count = Counter()
         num_docs = len(arr)
         # cpu_count=os.cpu_count()
         # with Pool(cpu_count) as p:
         #use map instead
-        for a in arr:
-            idf_count.update(self.process(a))
+        dataloader= torch.utils.data.DataLoader(arr, batch_size=100, shuffle=False, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=False)
+        for a in tqdm(dataloader):
+            for tokens in self.process(a):
+                idf_count.update(tokens)
 #       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
-        idf_dict = defaultdict(lambda: log((num_docs + 1) / (1)))
-        idf_dict.update(
-            {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
-        )
-        self.idf_dict=idf_dict
-        #save the idf_dict
-        torch.save(self.idf_dict,f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict.pt")
-        
+        idf_dict = {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
+        with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "w") as f:
+            json.dump(idf_dict,f)
+        self.idf_dict.update(idf_dict)
+    
+
     def setup(self, stage=None):
         '''called on each GPU separately - stage defines if we are at fit or test step'''
         #print("Entered COCO datasetup")

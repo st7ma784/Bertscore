@@ -93,7 +93,7 @@ class myLightningModule(LightningModule):
         preds = torch.cat(preds, dim=1 if self.all_layers else 0)
         self.log("P",P)
         self.log("R",R)
-        self.log("F1",F1)
+        self.log("F1",F1,prog_bar=True)
         return preds
 
     def on_test_epoch_end(self, *args, **kwargs):

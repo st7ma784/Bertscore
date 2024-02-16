@@ -24,7 +24,7 @@ class parser(HyperOptArgumentParser):
                                                                                     "xlm-roberta-base",
                                                                                     "distilbert-base-uncased",
                                                                                     "albert-base-v2",
-                                                                                    "xlnet-base-cased",
+                                                                                    #"xlnet-base-cased", #throws int to large error
                                                                                     # "xml-roberta-large",
                                                                                     "t5-small",
                                                                                     "facebook/bart-base",], tunable=True)
