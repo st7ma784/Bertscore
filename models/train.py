@@ -40,8 +40,10 @@ class myLightningModule(LightningModule):
         return emb
     def forward(self,*args,**kwargs):
         return self.model(input)
+    def train_step(self, batch, batch_idx):
+        pass
 
-    def on_train_epoch_start(self, *args, **kwargs):
+    def on_test_epoch_start(self, *args, **kwargs):
         """
         Compute BERTScore.
         Args:
@@ -61,7 +63,7 @@ class myLightningModule(LightningModule):
         B, K = sen_batch.size()
         idx = torch.randperm(B)
         return sen_batch[idx], idf_batch[idx], mask_batch[idx]
-    def training_step(self, batch, batch_idx,optimizer_idx=0):
+    def test_step(self, batch, batch_idx,optimizer_idx=0):
 
         Hpadded_sens=batch["padded_en"]
         Hpadded_idf=batch["padded_idf_en"]
@@ -93,7 +95,7 @@ class myLightningModule(LightningModule):
         self.log("F1",F1)
         return preds
 
-    def on_train_epoch_end(self, *args, **kwargs):
+    def on_test_epoch_end(self, *args, **kwargs):
         """
         Log BERTScore to tensorboard.
         """

@@ -61,12 +61,9 @@ def train(config={
             fast_dev_run=False,
             precision=32
     )
-    if config["batch_size"] !=1:
         
-        trainer.fit(model,Dataset)
-    else:
-        return 0 #No need to train if batch size is 1
-    
+    trainer.test(model,Dataset)
+
 #### This is a wrapper to make sure we log with Weights and Biases, You'll need your own user for this. 
 def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
     if config is not None:

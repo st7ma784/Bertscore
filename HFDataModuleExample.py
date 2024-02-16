@@ -81,7 +81,8 @@ class MyDataModule(pl.LightningDataModule):
                                streaming=False,
                                )
         self.get_idf_dict(self.dataset['train'])
-
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.02)
     def tokenization(self,sample):
 
         return self.collate_idf(sample)
