@@ -26,7 +26,8 @@ class myLightningModule(LightningModule):
         self.all_layers=all_layers
         self.idf_dict=idf_dict
         self.shuffle=perfect_match
-        
+    def configure_optimizers(self):
+        pass 
     def no_lsa(self,tensor):
         return torch.ones_like(tensor)
         
