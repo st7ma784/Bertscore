@@ -31,25 +31,25 @@ class myLightningModule(LightningModule):
     def no_lsa(self,tensor):
         return torch.ones_like(tensor)
         
-    def bert_encode(self, x, attention_mask):
+    def bert_encode(self, input_ids, attention_mask):
         with torch.no_grad():
-            out = self(x, attention_mask=attention_mask, output_hidden_states=self.all_layers)
+            out = self.model(input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=self.all_layers)
         if self.all_layers:
             emb = torch.stack(out[-1], dim=2)
         else:
             emb = out[0]
         return emb
     def forward(self,*args,**kwargs):
-        return self.model(input)
-    def training_step(self, batch, batch_idx):
-        self.test_step(batch, batch_idx)
+        return self.model(*args,**kwargs)
+    def test_step(self, batch, batch_idx):
+        self.training_step(batch, batch_idx)
         return {"loss":0}
-    def on_train_epoch_start(self, *args, **kwargs):
-        self.on_test_epoch_start()
-    def on_train_epoch_end(self, *args, **kwargs):
-        self.on_test_epoch_end()
-
     def on_test_epoch_start(self, *args, **kwargs):
+        self.on_train_epoch_start()
+    def on_test_epoch_end(self, *args, **kwargs):
+        self.on_train_epoch_end()
+
+    def on_train_epoch_start(self, *args, **kwargs):
         """
         Compute BERTScore.
         Args:
@@ -66,10 +66,13 @@ class myLightningModule(LightningModule):
             - :param: `idf_batch` (torch.Tensor): BxK, batch of idf scores
             - :param: `mask_batch` (torch.LongTensor): BxK, batch of masks
         """
-        B, K = sen_batch.size()
+        if isinstance(sen_batch, list):
+            B=len(sen_batch)
+        else:
+            B = sen_batch.shape[0] 
         idx = torch.randperm(B)
         return sen_batch[idx], idf_batch[idx], mask_batch[idx]
-    def test_step(self, batch, batch_idx,optimizer_idx=0):
+    def training_step(self, batch, batch_idx,optimizer_idx=0):
 
         Hpadded_sens=batch["padded_en"]
         Hpadded_idf=batch["padded_idf_en"]
@@ -78,17 +81,21 @@ class myLightningModule(LightningModule):
         Rpadded_idf=batch["padded_idf_de"]
         Rmasks=batch["mask_de"]
         
+        if isinstance(Hpadded_sens,list):
+            #convert to tensor
+            Hpadded_sens=torch.stack(Hpadded_sens,dim=1).to(self.device,non_blocking=True)
+            Rpadded_sens=torch.stack(Rpadded_sens,dim=1).to(self.device,non_blocking=True)
         if self.shuffle:
             Hpadded_sens, Hpadded_idf, Hmasks = self.shuffle_batch(Hpadded_sens, Hpadded_idf, Hmasks)
 
 
 
         Hembs = self.bert_encode(
-            Hpadded_sens,
+            input_ids=Hpadded_sens,
             attention_mask=Hmasks,
         )
         Rembs = self.bert_encode(
-            Rpadded_sens,
+            input_ids=Rpadded_sens,
             attention_mask=Rmasks,
         )
         
@@ -102,7 +109,7 @@ class myLightningModule(LightningModule):
         wandb.log({"P":P,"R":R,"F1":F1})
         return {"P":P,"R":R,"F1":F1}
 
-    def on_test_epoch_end(self, *args, **kwargs):
+    def on_train_epoch_end(self, *args, **kwargs):
         """
         Log BERTScore to tensorboard.
         """

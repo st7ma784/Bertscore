@@ -52,6 +52,7 @@ class MyDataModule(pl.LightningDataModule):
                 raise NotImplementedError(
                     f"transformers version {trans_version} is not supported"
                 )
+        self.lengths=[]
     def train_dataloader(self, B=None):
         if B is None:
             B=self.batch_size 
@@ -119,7 +120,7 @@ class MyDataModule(pl.LightningDataModule):
                    self.sent_encode(a["de"]))
                     if ("en" in a and
                      "de" in a) else (None,None) for a in arr["translation"]
-]
+        ]
         [arr_en,arr_de] = zip(*arr)
         idf_weights_en = [[self.idf_dict[i] for i in a] for a in arr_en]
         idf_weights_de = [[self.idf_dict[i] for i in a] for a in arr_de]
@@ -139,12 +140,15 @@ class MyDataModule(pl.LightningDataModule):
             
         }
     def padding(self, arr, pad_token, dtype=torch.long):
-        lens = torch.LongTensor([len(a) for a in arr])
-        max_len = lens.max().item()
-        padded = torch.ones(len(arr), max_len, dtype=dtype) * pad_token
+        lens = [len(a) for a in arr]
+        self.lengths.extend(lens)
+
+        lens = torch.LongTensor(lens).clamp(max=100)
+        max_len = 100
+        padded = torch.full((len(arr), max_len),pad_token, dtype=dtype)
         mask = torch.zeros(len(arr), max_len, dtype=torch.long)
         for i, a in enumerate(arr):
-            padded[i, : lens[i]] = torch.tensor(a, dtype=dtype)
+            padded[i, : lens[i]] = torch.tensor(a[:lens[i]], dtype=dtype)
             mask[i, : lens[i]] = 1
         return padded, lens, mask
 
@@ -199,22 +203,21 @@ class MyDataModule(pl.LightningDataModule):
             self.dataset=load_dataset("wmt16", "de-en",
                                cache_dir=self.data_dir,
                                streaming=True,)
-        #get the idf dictionary
             self.get_idf_dict(self.dataset['train'])
-        #MAP ITEM -> [{'en' : item.split("|||")[0], 'zh' : item.split("|||")[1]} for item in self.dataset['train']['translation']]   
-        # reformatted_dataset = self.dataset["train"].map(lambda x: {'en' : x["text"].split("|||")[0], 'de' : x["text"].split("|||")[1]})
-        #remove the old "text" column
-        # reformatted_dataset.remove_columns("text")
-        #tokenize the reformatted dataset
-        self.train=self.dataset['train'].map(lambda x: self.tokenization(x), batched=True)
+  
+        from torch.utils.data import IterableDataset
+        if not isinstance(self.dataset["train"],IterableDataset):
+            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=100,num_proc=os.cpu_count())
+        else:
+            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"])
+        # self.train=self.train.set_format(type="torch", columns=["padded_en","padded_idf_en","mask_en","padded_de","padded_idf_de","mask_de"])
+
         self.val=self.train
         self.test=self.train
-        #remove the old "text" column
-        self.train.remove_columns("translation")
-        self.val.remove_columns("translation")
-        self.test.remove_columns("translation")
-        print(self.train.column_names)
-        
+
+
+
+
 if __name__=="__main__":
 
 
