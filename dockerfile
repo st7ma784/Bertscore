@@ -15,6 +15,5 @@ COPY . /app
 
 # Run the launch command with the num_trials -1 flag
 
-#use RUN to run the command
-RUN python launch.py --dir /data --annotations /data/annotations --log_path \data\logs --num_trials -1
-#CMD ["python", "Launch.py", "--dir /data","--annotations /data/annotations","--log_path \data\logs", "--num_trials -1"]
+#use ENTRYPOINT to run the command
+ENTRYPOINT ["python", "launch.py", "--dir","/data", "--num_trials","-1"]
