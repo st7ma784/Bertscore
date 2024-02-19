@@ -8,12 +8,21 @@ services:
     restart: always
     #give access to the host's network
     network_mode: "host"
+    #devices 
+    #assign the GPU devices to the container
+
+    devices:
+      - /dev/nvidia0
+      - /dev/nvidia-uvm
+      - /dev/nvidia-uvm-tools
+      - /dev/nvidia-modeset
+    
 
 volumes:
   datasets:
     external: true
     # path to the dataset on the host
-    path: /data
+    path: ~/data
        
     # make this volume persistent and mounted locallyunder /data
 
