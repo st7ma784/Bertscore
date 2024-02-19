@@ -1,0 +1,20 @@
+version: '3'
+services:
+  myapp:
+    image: st7ma784/runbertscoretest
+    
+    volumes:
+      - datasets:/data
+    restart: always
+    #give access to the host's network
+    network_mode: "host"
+
+volumes:
+  datasets:
+    external: true
+    # path to the dataset on the host
+    path: /data
+       
+    # make this volume persistent and mounted locallyunder /data
+
+
