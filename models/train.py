@@ -85,6 +85,11 @@ class myLightningModule(LightningModule):
             #convert to tensor
             Hpadded_sens=torch.stack(Hpadded_sens,dim=1).to(self.device,non_blocking=True)
             Rpadded_sens=torch.stack(Rpadded_sens,dim=1).to(self.device,non_blocking=True)
+            Hmasks=torch.stack(Hmasks,dim=1).to(self.device,non_blocking=True)
+            Rmasks=torch.stack(Rmasks,dim=1).to(self.device,non_blocking=True)
+            Hpadded_idf=torch.stack(Hpadded_idf,dim=1).to(self.device,non_blocking=True)
+            Rpadded_idf=torch.stack(Rpadded_idf,dim=1).to(self.device,non_blocking=True)
+            
         if self.shuffle:
             Hpadded_sens, Hpadded_idf, Hmasks = self.shuffle_batch(Hpadded_sens, Hpadded_idf, Hmasks)
 
@@ -101,13 +106,17 @@ class myLightningModule(LightningModule):
         
 
         P, R, F1 = self.greedy_cos_idf(Hembs, Hmasks, Hpadded_idf, Rembs, Rmasks, Rpadded_idf)        
-        preds.append(torch.stack((P, R, F1), dim=-1).cpu())
-        preds = torch.cat(preds, dim=1 if self.all_layers else 0)
+        P=P.mean()
+        R=R.mean()
+        F1=F1.mean()
+
+        self.preds.append(torch.stack((P, R, F1), dim=-1).cpu())
+        #preds = torch.cat(preds, dim=1 if self.all_layers else 0)
         self.log("P",P, prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("R",R, prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("F1",F1, prog_bar=True,enable_graph=False, rank_zero_only=True)
         wandb.log({"P":P,"R":R,"F1":F1})
-        return {"P":P,"R":R,"F1":F1}
+        return {"P":P,"R":R,"F1":F1,"loss":1-F1}
 
     def on_train_epoch_end(self, *args, **kwargs):
         """
@@ -176,9 +185,10 @@ class myLightningModule(LightningModule):
 
         masks = masks.float().to(self.device)
         sim = sim * masks
-        LSA=self.lsa_algorithm(sim)
-        #LSA is a onehot vector of the best match
-        sim = sim * LSA
+        print(sim.shape)
+        for i in range(sim.shape[0]):
+            sim[i]=sim[i]*self.lsa_algorithm(sim[i])
+            #there are better ways to do this- the lsa algortihms should all scale to batched just fine. 
 
 
         word_precision = sim.max(dim=2)[0]
