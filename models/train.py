@@ -116,7 +116,7 @@ class myLightningModule(LightningModule):
         self.log("R",R, prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("F1",F1, prog_bar=True,enable_graph=False, rank_zero_only=True)
         wandb.log({"P":P,"R":R,"F1":F1})
-        return {"P":P,"R":R,"F1":F1,"loss":1-F1}
+        return {"P":P,"R":R,"F1":F1}
 
     def on_train_epoch_end(self, *args, **kwargs):
         """
@@ -185,7 +185,7 @@ class myLightningModule(LightningModule):
 
         masks = masks.float().to(self.device)
         sim = sim * masks
-        print(sim.shape)
+        # print(sim.shape)
         for i in range(sim.shape[0]):
             sim[i]=sim[i]*self.lsa_algorithm(sim[i])
             #there are better ways to do this- the lsa algortihms should all scale to batched just fine. 

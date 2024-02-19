@@ -336,12 +336,7 @@ def reduceLinearSumAssignment_v4(rewards:torch.Tensor,maximize=True):
 
 def recursiveLinearSumAssignment(rewards:torch.Tensor,maximize=False,factor=0.8):
     cost_neg,next_highest_fn,comb_fn,final_fn=((torch.tensor(float('inf')),torch.min,torch.add,torch.argmin),(torch.tensor(float('-inf')),torch.max,torch.sub,torch.argmax))[maximize] 
-    #cost_neg,next_highest_fn,comb_fn,final_fn=((1e9,torch.min,torch.add,torch.argmin),(-1e9,torch.max,torch.sub,torch.argmax))[maximize] 
-    #we need to make a mask that holds the diagonal of a H x H matrix repeated B times, and then one with the diagonal of a BxB matrix repeated H times
-    # rewards=rewards-torch.min(torch.min(rewards,dim=1,keepdim=True).values,dim=0).values
-    #^^ should make no difference.....but always worth checking! 
-    #rewards=rewards-  (rewards.min())
-    #col_index=None
+
     dimsizes=torch.tensor(rewards.shape)
     #select index of the smallest value
     bigdim=torch.argmax(dimsizes)
