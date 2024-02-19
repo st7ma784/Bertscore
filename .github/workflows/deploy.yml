@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - model/*
+      - lauch.py
+      - demoparse.py
       - requirements.txt
       - .github/workflows/deploy.yml
   #release:
