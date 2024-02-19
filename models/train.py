@@ -122,7 +122,7 @@ class myLightningModule(LightningModule):
         """
         Log BERTScore to tensorboard.
         """
-        preds = torch.cat(self.preds, dim=1 if self.all_layers else 0)
+        preds = torch.cat(self.preds, dim=0)
         self.log("e_P",preds[0].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("e_R",preds[1].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("e_F1",preds[2].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
