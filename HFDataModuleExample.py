@@ -28,26 +28,30 @@ class MyDataModule(pl.LightningDataModule):
         self.tokenizer =tokenizer
         if self.tokenizer is None: 
             self.tokenizer=CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32",cache_dir=self.data_dir)
+        max_len = self.tokenizer.model_max_length if hasattr(self.tokenizer, "model_max_length") else self.tokenizer.max_len
+        
+        self.seq_len = kwargs.get("padding_length", max_len)
+
         if isinstance(self.tokenizer, GPT2Tokenizer) or isinstance(self.tokenizer, RobertaTokenizer):
             # for RoBERTa and GPT-2
             if version.parse(trans_version) >= version.parse("4.0.0"):
-                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.tokenizer.model_max_length, truncation=True)
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.seq_len, truncation=True)
 
             elif version.parse(trans_version) >= version.parse("3.0.0"):
-                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, add_prefix_space=True, max_length=self.tokenizer.max_len, truncation=True,
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, add_prefix_space=True, max_length=self.seq_len, truncation=True,
                     )
 
             elif version.parse(trans_version) >= version.parse("2.0.0"):
-                self.tokenize=partial(self.tokenizer.encode,add_special_tokens=True,add_prefix_space=True,max_length=self.tokenizer.max_len,)
+                self.tokenize=partial(self.tokenizer.encode,add_special_tokens=True,add_prefix_space=True,max_length=self.seq_len,)
             else:
                 raise NotImplementedError( "transformers version {trans_version} is not supported")
         else:
             if version.parse(trans_version) >= version.parse("4.0.0"):
-                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.tokenizer.model_max_length, truncation=True)
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.seq_len, truncation=True)
             elif version.parse(trans_version) >= version.parse("3.0.0"):
-                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.tokenizer.max_len, truncation=True,)
+                self.tokenize=partial(self.tokenizer.encode, add_special_tokens=True, max_length=self.seq_len, truncation=True,)
             elif version.parse(trans_version) >= version.parse("2.0.0"):
-                 self.tokenize=partial(self.tokenizer.encode,add_special_tokens=True, max_length=self.tokenizer.max_len)
+                 self.tokenize=partial(self.tokenizer.encode,add_special_tokens=True, max_length=self.seq_len)
             else:
                 raise NotImplementedError(
                     f"transformers version {trans_version} is not supported"
