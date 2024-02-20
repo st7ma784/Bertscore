@@ -58,6 +58,7 @@ def get_all_LSA_fns():
     #returns list of all other fns in this file that take a tensor as input.
     functions={
         "my function": MyLSA,
+        "grad_fn":recursiveLinearSumAssignment_grad,
         #outputconversion(no_for_loop_MyLinearSumAssignment),
         #outputconversion(no_for_loop_triu_MyLinearSumAssignment),
         #outputconversion(no_for_loop_v2_MyLinearSumAssignment),
@@ -260,6 +261,27 @@ def reduceLinearSumAssignment(rewards:torch.Tensor,cost_neg:torch.Tensor,next_hi
     Cost_total= torch.add(Costs,Costs2.T)
     return Cost_total
 
+def reduceLinearSumAssignment_grad(rewards:torch.Tensor,cost_neg:torch.Tensor,next_highest_fn: Callable,remove,dim=1):
+    removehw,removehwT=remove
+    if dim==0:
+        removehw,removehwT=removehwT,removehw
+
+    # rewards is HW, weights is  B(H) H W 
+    weights=rewards.unsqueeze(0).repeat(*tuple([rewards.shape[0]]+ [1]*len(rewards.shape)))
+    #rewards is shape hw, weights is shape h w w
+    weights=weights.masked_fill(removehw,cost_neg)#.permute(1,2,0)
+    #draw(weights.cpu())
+    Costs=next_highest_fn(weights,dim=dim).values #should not be 0  
+    #draw(Costs.cpu())
+    #print(Costs.shape)
+    weights2=rewards.T.unsqueeze(0).repeat(*tuple([rewards.shape[1]]+ [1]*len(rewards.shape)))
+
+    weights2=weights2.masked_fill(removehwT,cost_neg)#.permute(1,2,0)
+    Costs2=next_highest_fn(weights2,dim=dim).values #should not be 0
+
+    Cost_total= torch.add(Costs,Costs2.T)
+    return Cost_total
+
 def reduceLinearSumAssignment_vm(rewards:torch.Tensor,cost_neg:torch.Tensor,next_highest_fn: Callable,remove:torch.Tensor):
     weights=rewards.unsqueeze(-1).repeat(*tuple([1]*len(rewards.shape)+[rewards.shape[-1]]))
     weights1=weights.masked_fill(remove,cost_neg)#.permute(1,2,0)
@@ -312,6 +334,27 @@ def reduceLinearSumAssignment_v3(rewards:torch.Tensor,maximize=True):
     totalCosts=TotalCosts+deltas
     return totalCosts
 
+def reduceLinearSumAssignment_vgrad(rewards:torch.Tensor,maximize=True):
+
+    #30,32
+    TotalCosts= torch.max(rewards,dim=1,keepdim=True).values + torch.max(rewards,dim=0,keepdim=True).values
+    #30,32
+    diffs= torch.diff(rewards.topk(k=2,dim=1,largest=maximize).values,dim=1)
+    #30,1
+    diffs2= torch.diff(rewards.topk(k=2,dim=0,largest=maximize).values,dim=0)
+    #1,32
+    one_hot=torch.nn.functional.gumbel_softmax(rewards,dim=1,Hard=True)
+    #30,32
+    one_hot=one_hot*diffs
+    #30,32
+    one_hot2=torch.nn.functional.gumbel_softmax(rewards,dim=0,Hard=True)
+    #32,30
+
+    one_hot2=one_hot2.T * diffs2
+    deltas=one_hot+one_hot2
+    totalCosts=TotalCosts+deltas
+    return totalCosts
+
 
 def reduceLinearSumAssignment_v4(rewards:torch.Tensor,maximize=True):
 
@@ -351,7 +394,21 @@ def recursiveLinearSumAssignment(rewards:torch.Tensor,maximize=False,factor=0.8)
     #return torch.arange(rewards.shape[0],device=rewards.device),col_index
     output=(torch.arange(rewards.shape[small_dim],device=rewards.device),col_index) if small_dim==1 else (col_index,torch.arange(rewards.shape[small_dim],device=rewards.device))
     return output
+def recursiveLinearSumAssignment_grad(rewards:torch.Tensor,maximize=False,factor=0.8):
+    cost_neg,next_highest_fn,comb_fn,final_fn=((torch.tensor(float('inf')),torch.min,torch.add,torch.argmin),(torch.tensor(float('-inf')),torch.max,torch.sub,torch.argmax))[maximize] 
 
+    dimsizes=torch.tensor(rewards.shape)
+    #select index of the smallest value
+    bigdim=torch.argmax(dimsizes)
+    small_dim=torch.argmin(dimsizes)
+    output=torch.zeros_like(rewards,dtype=torch.int8)
+    removeHHB=torch.zeros((rewards.shape[small_dim],rewards.shape[small_dim]),dtype=torch.bool,device=rewards.device).fill_diagonal_(1).unsqueeze(-1).repeat(*tuple([1]*len(rewards.shape) + [rewards.shape[bigdim]]))
+    removeBBH=torch.zeros((rewards.shape[bigdim],rewards.shape[bigdim]),dtype=torch.bool,device=rewards.device).fill_diagonal_(1).unsqueeze(-1).repeat(*tuple([1]*len(rewards.shape)+[rewards.shape[small_dim]]))
+    for i in range(10):
+        cost=reduceLinearSumAssignment_vgrad(rewards,cost_neg,next_highest_fn,(removeHHB,removeBBH),dim=bigdim)
+        rewards=rewards - (cost/factor)
+    output=torch.nn.functional.gumbel_softmax(rewards,dim=bigdim,tau=1, hard=False)
+    return output
 def recursiveLinearSumAssignment_v2(rewards:torch.Tensor,maximize=True,factor=1):
     cost_neg,next_highest_fn,comb_fn,final_fn=((torch.tensor(float('inf')),torch.min,torch.add,torch.argmin),(torch.tensor(float('-inf')),torch.max,torch.sub,torch.argmax))[maximize] 
     #cost_neg,next_highest_fn,comb_fn,final_fn=((1e9,torch.min,torch.add,torch.argmin),(-1e9,torch.max,torch.sub,torch.argmax))[maximize] 
