@@ -26,7 +26,7 @@ class parser(HyperOptArgumentParser):
                                                                                     "albert-base-v2",
                                                                                     #"xlnet-base-cased", #throws int to large error
                                                                                     # "xml-roberta-large",
-                                                                                    "t5-small", # needs to be passed decoder ids as input too **sigh 
+                                                                                    #"t5-small", # needs to be passed decoder ids as input too **sigh 
                                                                                     "facebook/bart-base",], tunable=True)
                                                                                     
         #This is important when passing arguments as **config in launcher
