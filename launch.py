@@ -72,9 +72,10 @@ def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
         config=config.__dict__
         dir=config.get("dir",dir)
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
+        wandb.finish() # Finish any old runs
         run=wandb.init(project="BertScore",entity="st7ma784",name="BertScore",config=config)
 
-        logtool= pytorch_lightning.loggers.WandbLogger( project="BertScore",entity="st7ma784", save_dir=dir)
+        logtool= pytorch_lightning.loggers.WandbLogger( project="BertScore",entity="st7ma784",experiment=run, save_dir=dir)
         print(config)
 
     else: 
