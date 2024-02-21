@@ -58,7 +58,7 @@ def get_all_LSA_fns():
     #returns list of all other fns in this file that take a tensor as input.
     functions={
         "my function": MyLSA,
-        "grad_fn":recursiveLinearSumAssignment_grad,
+        #"grad_fn":recursiveLinearSumAssignment_grad,
         #outputconversion(no_for_loop_MyLinearSumAssignment),
         #outputconversion(no_for_loop_triu_MyLinearSumAssignment),
         #outputconversion(no_for_loop_v2_MyLinearSumAssignment),
