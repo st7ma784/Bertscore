@@ -180,14 +180,14 @@ class myLightningModule(LightningModule):
             )
         batch_size = ref_embedding.size(0)
         sim = torch.bmm(hyp_embedding, ref_embedding.transpose(1, 2))
-        masks = torch.bmm(hyp_masks.unsqueeze(2).float(), ref_masks.unsqueeze(1).float())
-        if self.all_layers:
-            masks = masks.unsqueeze(0).expand(L, -1, -1, -1).contiguous().view_as(sim)
-        else:
-            masks = masks.expand(batch_size, -1, -1).contiguous().view_as(sim)
+        # masks = torch.bmm(hyp_masks.unsqueeze(2).float(), ref_masks.unsqueeze(1).float())
+        # if self.all_layers:
+        #     masks = masks.unsqueeze(0).expand(L, -1, -1, -1).contiguous().view_as(sim)
+        # else:
+        #     masks = masks.expand(batch_size, -1, -1).contiguous().view_as(sim)
 
-        masks = masks.float().to(self.device)
-        sim = sim * masks
+        # masks = masks.float().to(self.device)
+        # sim = sim * masks
         # print(sim.shape)
         for i in range(sim.shape[0]):
             sim[i]=sim[i]*self.lsa_algorithm(sim[i])
