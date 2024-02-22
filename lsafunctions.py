@@ -32,7 +32,8 @@ def outputconversion(func): #converts the output of a function back to 1-hot ten
         return output
     
     return partial(wrapper,func=func)
-
+def to_device(tensor,device):
+    return tensor.to(device)
 def forcehigh(func):
     def wrapper(*args, **kwargs):
         func=kwargs.pop("func")
@@ -70,14 +71,15 @@ def get_all_LSA_fns():
         "recursive fn5":outputconversion(recursiveLinearSumAssignment_v5),
         #outputconversion(recursiveLinearSumAssignment_v3),
         #outputconversion(recursiveLinearSumAssignment_v4),
-        "stock":outputconversion(linear_sum_assignment),
+        "stock":outputconversion(stock_lsa),
 
     }
 
     return functions
 
 
-
+def stock_lsa(TruthTensor):
+    return linear_sum_assignment(TruthTensor.detach().cpu())
 def MyLSA(TruthTensor, maximize=True,lookahead=2):
     '''
     If Maximize is False, I'm trying to minimize the costs. 
