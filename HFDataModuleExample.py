@@ -83,7 +83,9 @@ class MyDataModule(pl.LightningDataModule):
         #2014 german to english
         self.dataset = load_dataset("wmt16", "de-en",
                                cache_dir=self.data_dir,
+                               data_dir=self.data_dir,
                                streaming=False,
+
                                )
         self.get_idf_dict(self.dataset['train'])
 
@@ -186,7 +188,7 @@ class MyDataModule(pl.LightningDataModule):
         # cpu_count=os.cpu_count()
         # with Pool(cpu_count) as p:
         #use map instead
-        dataloader= torch.utils.data.DataLoader(arr, batch_size=100, shuffle=False, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=False)
+        dataloader= torch.utils.data.DataLoader(arr, batch_size=300, shuffle=False, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=False)
         for a in tqdm(dataloader):
             for tokens in self.process(a):
                 idf_count.update(tokens)
@@ -211,7 +213,7 @@ class MyDataModule(pl.LightningDataModule):
   
         from torch.utils.data import IterableDataset
         if not isinstance(self.dataset["train"],IterableDataset):
-            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=100,num_proc=os.cpu_count())
+            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=400,num_proc=os.cpu_count())
         else:
             self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"])
         # self.train=self.train.set_format(type="torch", columns=["padded_en","padded_idf_en","mask_en","padded_de","padded_idf_de","mask_de"])
