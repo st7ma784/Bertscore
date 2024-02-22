@@ -216,7 +216,7 @@ class MyDataModule(pl.LightningDataModule):
   
         from torch.utils.data import IterableDataset
         if not isinstance(self.dataset["train"],IterableDataset):
-            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=100,num_proc=os.cpu_count())
+            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=100,num_proc=min(8,os.cpu_count()))
         else:
             self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"])
         # self.train=self.train.set_format(type="torch", columns=["padded_en","padded_idf_en","mask_en","padded_de","padded_idf_de","mask_de"])
