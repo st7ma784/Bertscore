@@ -13,7 +13,7 @@ class parser(HyperOptArgumentParser):
         from lsafunctions import get_all_LSA_fns
         lsakeys=list(get_all_LSA_fns().keys())
         self.opt_list("--LSAVersion",default="none",options=["none"]+lsakeys, tunable=True)
-        self.opt_list("--all_layers", default=False, options=[True,False], tunable=True)
+        self.opt_list("--all_layers", default=False, options=[False], tunable=True)
         self.opt_list("--perfect_match", default=False, options=[True,False], tunable=True)
         self.opt_list("--accelerator", default='auto', type=str, options=['auto'], tunable=True)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
