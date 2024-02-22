@@ -71,7 +71,10 @@ class myLightningModule(LightningModule):
         else:
             B = sen_batch.shape[0] 
         idx = torch.randperm(B)
-        return sen_batch[idx], idf_batch[idx], mask_batch[idx]
+        sen_batch = torch.stack([sen_batch[i] for i in idx], dim=0)
+        idf_batch = torch.stack([idf_batch[i] for i in idx], dim=0)
+        mask_batch = torch.stack([mask_batch[i] for i in idx],dim=0)
+        return sen_batch, idf_batch, mask_batch
     def training_step(self, batch, batch_idx,optimizer_idx=0):
 
         Hpadded_sens=batch["padded_en"]
