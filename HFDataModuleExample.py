@@ -180,9 +180,12 @@ class MyDataModule(pl.LightningDataModule):
         self.idf_dict=defaultdict(lambda: log((len(arr) + 1) / len(arr)))
         if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json"):
             with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "r") as f:
-                idf_dict=json.load(f)
-                self.idf_dict.update(idf_dict)
-            return
+                try:
+                    idf_dict=json.load(f)
+                    self.idf_dict.update(idf_dict)
+                    return
+                except:
+                    pass
         idf_count = Counter()
         num_docs = len(arr)
         # cpu_count=os.cpu_count()
