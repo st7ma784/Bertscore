@@ -34,11 +34,13 @@ class baseparser(HyperOptArgumentParser):
     def __dict__(self):
         return {k:self.parse_args().__dict__[k] for k in self.argNames}
 
-    def parse_args(self):
-        output=super().parse_args()
-        print(output.__dir__)
-        print(type(output))
-        return output
+    # def parse_args(self):
+    #     output=super().parse_args()
+    #     print(output.__dir__)
+    #     #<built-in method __dir__ of TTNamespace object at 0x7f9a0a846520> MB deduped)
+    #     #   <class 'test_tube.argparse_hopt.TTNamespace'>
+
+    #     return output
     
 import wandb
 from tqdm import tqdm
