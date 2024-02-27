@@ -66,10 +66,10 @@ class parser(baseparser):
             code="_".join(values)
             self.run_configs.add(code)
         hyperparams = self.parse_args()
-        NumTrials=hyperparams.num_trials     
+        NumTrials=hyperparams.num_trials if hyperparams.num_trials>0 else 1
         trials=hyperparams.generate_trials(NumTrials)
-
-        for trial in trials:
+        print("checking if already done...")
+        for trial in tqdm(trials):
             code="_".join(list([v for k,v in trial.items() if k in self.keys()]).sort())
             while code in self.run_configs:
                 trial=hyperparams.generate_trials(1)[0]
