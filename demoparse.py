@@ -70,7 +70,7 @@ class parser(baseparser):
         trials=hyperparams.generate_trials(NumTrials)
         print("checking if already done...")
         for trial in tqdm(trials):
-            values=list([v for k,v in trial.__dict__.items() if k in self.keys])
+            values=list([str(v) for k,v in trial.__dict__.items() if k in self.keys])
             values.sort()
             code="_".join(values)
             while code in self.run_configs:
