@@ -59,7 +59,9 @@ class parser(baseparser):
             for key in config.keys():
                 self.keys.add(key)
             #print(config)
-            code="_".join([str(i) for i in run.config.values()].sort())
+            values=list([str(i) for i in run.config.values()])
+            values.sort()
+            code="_".join(values)
             self.run_configs.add(code)
         hyperparams = self.parse_args()
         NumTrials=hyperparams.num_trials     
@@ -69,7 +71,9 @@ class parser(baseparser):
             code="_".join(list([v for k,v in trial.items() if k in self.keys()]).sort())
             while code in self.run_configs:
                 trial=hyperparams.generate_trials(1)[0]
-                code="_".join(list([v for k,v in trial.items() if k in self.keys()]).sort())
+                values=[str(v) for k,v in trial.items() if k in self.keys()]
+                values.sort()
+                code="_".join(values)
         return trials
         
 # Testing to check param outputs
