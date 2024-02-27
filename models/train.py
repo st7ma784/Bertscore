@@ -75,6 +75,7 @@ class myLightningModule(LightningModule):
         idf_batch = torch.stack([idf_batch[i] for i in idx], dim=0)
         mask_batch = torch.stack([mask_batch[i] for i in idx],dim=0)
         return sen_batch, idf_batch, mask_batch
+    
     def training_step(self, batch, batch_idx,optimizer_idx=0):
 
         Hpadded_sens=batch["padded_en"]
