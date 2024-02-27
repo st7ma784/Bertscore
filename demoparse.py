@@ -59,7 +59,7 @@ class parser(baseparser):
             for key in config.keys():
                 self.keys.add(key)
             #print(config)
-            code="_".join(list(run.config.values()).sort())
+            code="_".join([str(i) for i in run.config.values()].sort())
             self.run_configs.add(code)
         hyperparams = self.parse_args()
         NumTrials=hyperparams.num_trials     
