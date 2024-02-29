@@ -53,8 +53,8 @@ class parser(baseparser):
         self.run_configs=set()
         self.keys=set()
     def generate_wandb_trials(self,entity,project):
-        api = wandb.Api()
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
+        api = wandb.Api()
 
         runs = api.runs(entity + "/" + project)
         print("checking prior runs")
