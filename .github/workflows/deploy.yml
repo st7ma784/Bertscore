@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - model/*
+      - ./dockerfile
+      - lsafunctions.py
       - lauch.py
       - demoparse.py
       - requirements.txt
