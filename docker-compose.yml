@@ -9,8 +9,6 @@ services:
     #give access to the host's network
     network_mode: "host"
     deploy:
-      mode: replicated
-      replicas: 1
       resources:
         reservations:
           devices:
