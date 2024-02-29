@@ -4,7 +4,7 @@ services:
     image: st7ma784/runbertscoretest:latest
 
     volumes:
-      - datasets:/data
+      - /data:/data
     restart: always
     #give access to the host's network
     # network_mode: "host"
@@ -17,7 +17,3 @@ services:
               capabilities: [gpu]
       restart_policy:
         condition: any
-
-volumes:
-  datasets:
-    external: true
