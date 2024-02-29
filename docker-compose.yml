@@ -1,29 +1,32 @@
 version: '3'
 services:
   myapp:
-    image: st7ma784/runbertscoretest
-    
+    image: st7ma784/runbertscoretest:latest
+
     volumes:
       - datasets:/data
     restart: always
     #give access to the host's network
     network_mode: "host"
-    #devices 
-    #assign the GPU devices to the container
-
-    devices:
-      - /dev/nvidia0
-      - /dev/nvidia-uvm
-      - /dev/nvidia-uvm-tools
-      - /dev/nvidia-modeset
-    
-
+    deploy:
+      mode: replicated
+      replicas: 4
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: stop-first
 volumes:
   datasets:
     external: true
-    # path to the dataset on the host
-    path: ~/data
-       
-    # make this volume persistent and mounted locallyunder /data
-
-
+    path: '/data'
