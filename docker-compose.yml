@@ -29,4 +29,4 @@ services:
 volumes:
   datasets:
     external: true
-    path: '/data'
+    
