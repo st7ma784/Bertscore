@@ -6,7 +6,7 @@ on:
       - model/*
       - ./dockerfile
       - lsafunctions.py
-      - lauch.py
+      - launch.py
       - demoparse.py
       - requirements.txt
       - .github/workflows/deploy.yml
