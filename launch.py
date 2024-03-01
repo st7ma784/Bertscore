@@ -50,8 +50,8 @@ def train(config={
     if sys.platform == "win32":
         os.environ["PL_TORCH_DISTRIBUTED_BACKEND"]='gloo'
     trainer=pytorch_lightning.Trainer(
-            devices=devices,
-            # auto_select_gpus=True,
+            devices=1,
+            auto_select_gpus=True,
             accelerator=accelerator,
             max_epochs=1,
             #profiler="advanced",
