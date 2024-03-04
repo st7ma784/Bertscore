@@ -109,15 +109,17 @@ def SlurmRun(trialconfig):
     if str(os.getenv("HOSTNAME","localhost")).endswith("bede.dur.ac.uk"):
         sub_commands.extend([
                 '#SBATCH --account bdlan05',
-                'export CONDADIR=/nobackup/projects/bdlan05/$USER/miniconda',
-                'export NCCL_SOCKET_IFNAME=ib0'])
+                'export CONDADIR=/nobackup/projects/bdlan05/$USER/miniconda/envs/',
+                'export NCCL_SOCKET_IFNAME=ib0',
+                'source $CONDADIR/etc/profile.d/conda.sh',
+])
         comm="python3"
     
     elif str(os.getenv("HOSTNAME","localhost")).endswith("lancaster.ac.uk"):
         
         sub_commands.extend(['#SBATCH --account $USER'
-                             'export CONDADIR= $global_storage/conda4',
-                             'export CONDADIR=/home/$USER/miniconda3',
+                             'export CONDADIR=$global_storage/conda4',
+                             'module add anaconda',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
     else: 
         sub_commands.extend(['export CONDADIR=/home/$USER/miniconda3',
@@ -126,8 +128,7 @@ def SlurmRun(trialconfig):
     sub_commands.extend([
         'export SLURM_NNODES=$SLURM_JOB_NUM_NODES',
         'export wandb=9cf7e97e2460c18a89429deed624ec1cbfb537bc',
-        'source $CONDADIR/etc/profile.d/conda.sh',
-        'conda activate $CONDADIR/envs/open-ce',# ...and activate the conda environment
+        'conda activate $CONDADIR/open-ce',# ...and activate the conda environment
     ])
     script_name= os.path.realpath(sys.argv[0]) #Find this scripts name...
     trialArgs=__get_hopt_params(trialconfig)
