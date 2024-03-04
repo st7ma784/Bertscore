@@ -112,6 +112,13 @@ def SlurmRun(trialconfig):
                 'export CONDADIR=/nobackup/projects/bdlan05/$USER/miniconda',
                 'export NCCL_SOCKET_IFNAME=ib0'])
         comm="python3"
+    
+    elif str(os.getenv("HOSTNAME","localhost")).endswith("lancaster.ac.uk"):
+        
+        sub_commands.extend(['#SBATCH --account $USER'
+                             'export CONDADIR= $global_storage/conda4',
+                             'export CONDADIR=/home/$USER/miniconda3',
+                             'export NCCL_SOCKET_IFNAME=enp0s31f6',])
     else: 
         sub_commands.extend(['export CONDADIR=/home/$USER/miniconda3',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
