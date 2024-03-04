@@ -115,7 +115,7 @@ def SlurmRun(trialconfig):
 ])
         comm="python3"
     
-    elif str(os.getenv("HOSTNAME","localhost")).endswith("lancaster.ac.uk"):
+    elif str(os.getenv("HOSTNAME","localhost")).endswith("hec.lancs.ac.uk"):
         
         sub_commands.extend(['#SBATCH --account $USER'
                              'SBATCH --partition gpu-medium',
