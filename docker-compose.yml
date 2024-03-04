@@ -20,7 +20,7 @@ services:
 
   s3vol:
     image: elementar/s3-volume
-    command: /data http://ucrel-hex-store.scc.lancs.ac.uk:3900/
+    command: /data s3://ucrel-hex-store.scc.lancs.ac.uk:3900/
     environment:
       - BACKUP_INTERVAL={2m}
       - AWS_ACCESS_KEY_ID={GK63a840669262737f1631d5b0}
