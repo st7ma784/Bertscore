@@ -4,7 +4,7 @@ services:
     image: st7ma784/runbertscoretest:latest
 
     volumes:
-      - /data:/data
+      - s3data:/data
     restart: always
     #give access to the host's network
     # network_mode: "host"
@@ -17,3 +17,17 @@ services:
               capabilities: [gpu]
       restart_policy:
         condition: any
+
+  s3vol:
+    image: elementar/s3-volume
+    command: /data http://ucrel-hex-store.scc.lancs.ac.uk:3900/
+    environment:
+      - BACKUP_INTERVAL={2m}
+      - AWS_ACCESS_KEY_ID={GK63a840669262737f1631d5b0}
+      - AWS_SECRET_ACCESS_KEY={8aaf7e285a069d4bad9594feb65c213eeb7de0a46e90e6bd12291b5dba287bd3}
+    volumes:
+      - s3data:/data
+volumes:
+  s3data:
+    driver: local
+
