@@ -118,6 +118,7 @@ def SlurmRun(trialconfig):
     elif str(os.getenv("HOSTNAME","localhost")).endswith("lancaster.ac.uk"):
         
         sub_commands.extend(['#SBATCH --account $USER'
+                             'SBATCH --partition gpu-medium',
                              'export CONDADIR=$global_storage/conda4',
                              'module add anaconda',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
