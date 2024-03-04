@@ -119,6 +119,7 @@ def SlurmRun(trialconfig):
         
         sub_commands.extend(['#SBATCH --account manders3'
                              '#SBATCH --p gpu-medium',
+                             '#SBATCH --exclusive',
                              'export CONDADIR=$global_storage/conda4',
                              'module add anaconda',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
