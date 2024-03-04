@@ -118,7 +118,7 @@ def SlurmRun(trialconfig):
     elif str(os.getenv("HOSTNAME","localhost")).endswith("hec.lancs.ac.uk"):
         
         sub_commands.extend(['#SBATCH --account manders3',
-                             '#SBATCH --p gpu-medium',
+                             '#SBATCH -p gpu-medium',
                              '#SBATCH --exclusive',
                              'export CONDADIR=$global_storage/conda4',
                              'module add anaconda',
