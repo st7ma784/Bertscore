@@ -1,11 +1,13 @@
 from test_tube import HyperOptArgumentParser
+import os
 
+base= "/nobackup/projects/bdlan05/$USER/" if str(os.getenv("HOSTNAME","localhost")).endswith("bede.dur.ac.uk") else "$global_storage"
 class baseparser(HyperOptArgumentParser):
     def __init__(self,*args,strategy="random_search",**kwargs):
 
         super().__init__( *args,strategy=strategy, add_help=False) # or random search
-        self.add_argument("--dir",default="/nobackup/projects/bdlan05/$USER/data",type=str)
-        self.add_argument("--log_path",default="/nobackup/projects/bdlan05/$USER/logs/",type=str)
+        self.add_argument("--dir",default=os.path.join(base,"data") ,type=str)
+        self.add_argument("--log_path",default=os.path.join(base,"logs/",type=str)
         # self.opt_list("--learning_rate", default=0.0001, type=float, options=[2e-4,1e-4,5e-5,1e-5,4e-6], tunable=True)
         self.opt_list("--batch_size", default=180, type=int)
         
