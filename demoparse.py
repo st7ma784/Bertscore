@@ -1,7 +1,7 @@
 from test_tube import HyperOptArgumentParser
 import os
 
-base= "/nobackup/projects/bdlan05/$USER/" if str(os.getenv("HOSTNAME","localhost")).endswith("bede.dur.ac.uk") else "$global_storage"
+base= "/nobackup/projects/bdlan05/$USER/" if str(os.getenv("HOSTNAME","localhost")).endswith("bede.dur.ac.uk") else "$global_scratch"
 class baseparser(HyperOptArgumentParser):
     def __init__(self,*args,strategy="random_search",**kwargs):
 
