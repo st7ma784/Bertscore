@@ -120,6 +120,8 @@ def SlurmRun(trialconfig):
         sub_commands.extend([
                              '#SBATCH --partition gpu-medium',
                             #  '#SBATCH --exclusive',
+                            '#SBATCH --mem=64G',
+                            '#SBATCH --cpus-per-task=16',
                              'export CONDADIR=$global_storage/conda4',
                              'module add anaconda',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
