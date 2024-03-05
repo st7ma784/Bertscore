@@ -53,7 +53,8 @@ class parser(baseparser):
 
         super().__init__( *args,strategy=strategy, add_help=False,**kwargs) # or random search
         self.run_configs=set()
-        self.keys=set()
+        self.keys_of_interest=set(["LSAVersion","all_layers","modelname","padding_length","perfect_match"])
+
     def generate_wandb_trials(self,entity,project):
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
         api = wandb.Api()
@@ -62,12 +63,10 @@ class parser(baseparser):
         print("checking prior runs")
         for run in tqdm(runs):
             config=run.config
-            for key in config.keys():
-                self.keys.add(key)
-            #print(config)
-            sortedkeys=list([str(i) for i in config.keys()])
+
+            sortedkeys=list([str(i) for i in config.keys() if i in self.keys_of_interest])
             sortedkeys.sort()
-            values=list([str(config[i]) for i in sortedkeys])
+            values=list([str(config[i]) for i in sortedkeys if i in self.keys_of_interest])
             code="_".join(values)
             self.run_configs.add(code)
         hyperparams = self.parse_args()
@@ -75,7 +74,8 @@ class parser(baseparser):
         trials=hyperparams.generate_trials(NumTrials)
         print("checking if already done...")
         for trial in tqdm(trials):
-            sortedkeys=list([str(i) for i in self.keys])
+
+            sortedkeys=list([str(i) for i in trial.__dict__.keys() if i in self.keys_of_interest])
             sortedkeys.sort()
             values=list([str(trial.__dict__[k]) for k in sortedkeys if k in trial.__dict__])
             
