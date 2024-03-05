@@ -123,8 +123,9 @@ def SlurmRun(trialconfig):
                             '#SBATCH --mem=64G',
                             '#SBATCH --cpus-per-task=16',
                              'export CONDADIR=$global_storage/conda4',
-                             'module add anaconda',
+                             'module add opence',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
+        comm="python3"
     else: 
         sub_commands.extend(['export CONDADIR=/home/$USER/miniconda3/envs',
                              'export NCCL_SOCKET_IFNAME=enp0s31f6',])
