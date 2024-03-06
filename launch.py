@@ -121,8 +121,7 @@ def SlurmRun(trialconfig):
                              '#SBATCH --partition gpu-medium',
                             #  '#SBATCH --exclusive',
                              'export CONDADIR=$global_storage/conda4',
-                             'module add opence',
-                             'export NCCL_SOCKET_IFNAME=enp0s31f6',])
+                             'module add opence',])
         comm="python3"
     else: 
         sub_commands.extend(['export CONDADIR=/home/$USER/miniconda3/envs',
