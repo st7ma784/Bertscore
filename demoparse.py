@@ -14,13 +14,13 @@ class baseparser(HyperOptArgumentParser):
         #INSERT YOUR OWN PARAMETERS HERE
         from lsafunctions import get_all_LSA_fns
         lsakeys=list(get_all_LSA_fns().keys())
-        self.opt_list("--LSAVersion",default="none",options=["none"]+lsakeys, tunable=True)
+        self.opt_list("--LSAVersion",default="none",options=["none"]+lsakeys, tunable=True) #len 6
         self.opt_list("--all_layers", default=False, options=[False], tunable=True)
-        self.opt_list("--perfect_match", default=False, options=[True,False], tunable=True)
+        self.opt_list("--perfect_match", default=False, options=[True,False], tunable=True) #len 2
         self.opt_list("--accelerator", default='auto', type=str, options=['auto'], tunable=True)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
         #which model to use as inspired by the list on the bertscore github
-        self.opt_list("--padding_length", default=128, type=int, options=[128,384], tunable=True)
+        self.opt_list("--padding_length", default=128, type=int, options=[128,384], tunable=True) #len 2
         self.opt_list("--modelname", default="bert-base-uncased", type=str, options=["bert-base-uncased",
                                                                                     "roberta-base",
                                                                                     "xlm-roberta-base",
@@ -29,7 +29,7 @@ class baseparser(HyperOptArgumentParser):
                                                                                     #"xlnet-base-cased", #throws int to large error
                                                                                     # "xml-roberta-large",
                                                                                     #"t5-small", # needs to be passed decoder ids as input too **sigh 
-                                                                                    "facebook/bart-base",], tunable=True)
+                                                                                    "facebook/bart-base",], tunable=True) #len 6
                                                                                     
         #This is important when passing arguments as **config in launcher
         self.argNames=["dir","log_path","learning_rate","batch_size","modelname","precision","LSAVersion","accelerator","num_trials"]
