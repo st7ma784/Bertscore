@@ -54,6 +54,7 @@ def train(config={
             devices=1,
             accelerator=accelerator,
             max_epochs=1,
+            # max_test_steps=50,
             #profiler="advanced",
             logger=logtool,
             strategy="ddp",

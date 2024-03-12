@@ -60,18 +60,20 @@ class MyDataModule(pl.LightningDataModule):
     def train_dataloader(self, B=None):
         if B is None:
             B=self.batch_size 
-        return torch.utils.data.DataLoader(self.train, batch_size=B, shuffle=True, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=True)
+        indices = torch.arange(1800)
+    
+        return torch.utils.data.DataLoader(torch.utils.data.Subset(self.train,  torch.arange(1800)), batch_size=B, shuffle=True, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=True)
     
     def val_dataloader(self, B=None):
         if B is None:
             B=self.batch_size
     
-        return torch.utils.data.DataLoader(self.val, batch_size=B, shuffle=False, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=True)
+        return torch.utils.data.DataLoader( torch.utils.data.Subset(self.val,  torch.arange(1800)), batch_size=B, shuffle=False, num_workers=4, prefetch_factor=2, pin_memory=True,drop_last=True)
     
     def test_dataloader(self,B=None):
         if B is None:
             B=self.batch_size
-        return torch.utils.data.DataLoader(self.test, batch_size=B, shuffle=True, num_workers=8, prefetch_factor=4, pin_memory=True,drop_last=True)
+        return torch.utils.data.DataLoader( torch.utils.data.Subset(self.test,  torch.arange(1800)), batch_size=B, shuffle=True, num_workers=8, prefetch_factor=4, pin_memory=True,drop_last=True)
     
     def prepare_data(self):
 
