@@ -207,8 +207,8 @@ class myLightningModule(LightningModule):
         #########Find ClipScore#############
         #HEOTLocation.shape =B,S bool
         #REOTLocation.shape = B,S bool
-        print(HEOTLocation.shape)
-        print(REOTLocation.shape)
+        # print(HEOTLocation.shape)
+        # print(REOTLocation.shape)
         mask=torch.bmm(HEOTLocation.unsqueeze(-1),REOTLocation.unsqueeze(1))
         #result is B,S,S
         CS=torch.sum(sim*mask,dim=-1).sum(dim=-1).mean()
