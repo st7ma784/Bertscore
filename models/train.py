@@ -15,6 +15,7 @@ class myLightningModule(LightningModule):
                 all_layers=False,
                 perfect_match=False,
                 idf_dict={},
+                tokenizer=None,
                 **kwargs,
                 ):
         super().__init__()
@@ -22,6 +23,7 @@ class myLightningModule(LightningModule):
         self.algorithms.update({"none":self.no_lsa})
         self.lsa_algorithm=self.algorithms[LSAVersion]
         #self.lsa_algorithm should take a matrix and return a one_hot vector of the same shape.
+        self.tokenizer=tokenizer
         self.model=model
         self.all_layers=all_layers
         self.idf_dict=idf_dict
@@ -84,7 +86,9 @@ class myLightningModule(LightningModule):
         Rpadded_sens=batch["padded_de"]
         Rpadded_idf=batch["padded_idf_de"]
         Rmasks=batch["mask_de"]
-        
+        EOT=self.tokenizer.eot_token_id
+
+        #Get EOT Token id using tokenizer? 
         if isinstance(Hpadded_sens,list):
             #convert to tensor
             Hpadded_sens=torch.stack(Hpadded_sens,dim=1).to(self.device,non_blocking=True)
@@ -96,6 +100,9 @@ class myLightningModule(LightningModule):
             
         if self.shuffle:
             Hpadded_sens, Hpadded_idf, Hmasks = self.shuffle_batch(Hpadded_sens, Hpadded_idf, Hmasks)
+        #find one hot Hpadded == EOTIDs? 
+        REOTLocation=Rpadded_sens==EOT
+        HEOTLocation=Hpadded_sens==EOT
 
 
 
@@ -109,18 +116,20 @@ class myLightningModule(LightningModule):
         )
         
 
-        P, R, F1 = self.greedy_cos_idf(Hembs, Hmasks, Hpadded_idf, Rembs, Rmasks, Rpadded_idf)        
+        P, R, F1,CS= self.greedy_cos_idf(Hembs, Hmasks, Hpadded_idf, Rembs, Rmasks, Rpadded_idf,REOTLocation,HEOTLocation)#pass in EOT IDs        
         P=P.mean()
         R=R.mean()
         F1=F1.mean()
+        CS=CS.mean()
 
         self.preds.append(torch.stack((P, R, F1), dim=-1).cpu())
         #preds = torch.cat(preds, dim=1 if self.all_layers else 0)
-        self.log("P",P, prog_bar=True,enable_graph=False, rank_zero_only=True)
-        self.log("R",R, prog_bar=True,enable_graph=False, rank_zero_only=True)
-        self.log("F1",F1, prog_bar=True,enable_graph=False, rank_zero_only=True)
-        wandb.log({"P":P,"R":R,"F1":F1})
-        return {"P":P,"R":R,"F1":F1}
+        self.log("P",P, prog_bar=True,enable_graph=False)
+        self.log("R",R, prog_bar=True,enable_graph=False)
+        self.log("F1",F1, prog_bar=True,enable_graph=False)
+        self.log("ClipScore",CS,prog_bar=True,enable_graph=False)
+        wandb.log({"P":P,"R":R,"F1":F1,"CS":CS})
+        return {"P":P,"R":R,"F1":F1,"CS":CS}
 
     def on_train_epoch_end(self, *args, **kwargs):
         """
@@ -130,7 +139,8 @@ class myLightningModule(LightningModule):
         self.log("e_P",preds[0].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("e_R",preds[1].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
         self.log("e_F1",preds[2].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
-        wandb.log({"e_P":preds[0].mean(),"e_R":preds[1].mean(),"e_F1":preds[2].mean()})
+        self.log("e_ClipScore",preds[3].mean())
+        wandb.log({"e_P":preds[0].mean(),"e_R":preds[1].mean(),"e_F1":preds[2].mean(),"e_ClipScore":preds[3].mean()})
 
 
     def greedy_cos_idf(
@@ -141,7 +151,9 @@ class myLightningModule(LightningModule):
         hyp_embedding,
         hyp_masks,
         hyp_idf,
-
+        #recieve EOT IDs
+        REOTLocation,
+        HEOTLocation,
     ):
         """
         Compute greedy matching based on cosine similarity.
@@ -190,6 +202,18 @@ class myLightningModule(LightningModule):
         # masks = masks.float().to(self.device)
         # sim = sim * masks
         # print(sim.shape)
+        
+
+        #########Find ClipScore#############
+        #HEOTLocation.shape =B,S bool
+        #REOTLocation.shape = B,S bool
+        print(HEOTLocation.shape)
+        print(REOTLocation.shape)
+        mask=torch.bmm(HEOTLocation.unsqueeze(-1),REOTLocation.unsqueeze(1))
+        #result is B,S,S
+        CS=torch.sum(sim*mask,dim=-1).sum(dim=-1).mean()
+
+        # log CLIP score as EOTid@EOTid? 
         for i in range(sim.shape[0]):
             sim[i]=sim[i]*self.lsa_algorithm(sim[i])
             #there are better ways to do this- the lsa algortihms should all scale to batched just fine. 
@@ -226,7 +250,7 @@ class myLightningModule(LightningModule):
 
         F = F.masked_fill(torch.isnan(F), 0.0)
 
-        return P, R, F
+        return P, R, F,CS
 
 
     # def pad_batch_stats(self,sen_batch, stats_dict):

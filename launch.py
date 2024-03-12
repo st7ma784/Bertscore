@@ -35,7 +35,7 @@ def train(config={
         # Dataset.prepare_data()
         #idf_dict=Dataset.idf_dict
         idf_dict={}
-    model=myLightningModule(model=model,idf_dict=idf_dict, **config)
+    model=myLightningModule(model=model,idf_dict=idf_dict,tokenizer=tokenizer, **config)
 
     if devices is None:
         devices=config.get("devices","auto")
