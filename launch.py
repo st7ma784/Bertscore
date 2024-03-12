@@ -196,7 +196,7 @@ if __name__ == '__main__':
 
     #OR To run with Default Args
     else: 
-        trials=myparser.generate_wandb_trials("st7ma784","Bertscore")
+        trials=myparser.generate_wandb_trials("st7ma784","BertCLIPScore")
         if len(trials)==1:
 
             trial=trials[0]

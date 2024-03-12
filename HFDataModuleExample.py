@@ -149,8 +149,8 @@ class MyDataModule(pl.LightningDataModule):
         lens = [len(a) for a in arr]
         self.lengths.extend(lens)
 
-        lens = torch.LongTensor(lens).clamp(max=100)
-        max_len = 100
+        lens = torch.LongTensor(lens).clamp(max=self.seq_len)
+        max_len = self.seq_len
         padded = torch.full((len(arr), max_len),pad_token, dtype=dtype)
         mask = torch.zeros(len(arr), max_len, dtype=torch.long)
         for i, a in enumerate(arr):

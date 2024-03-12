@@ -86,7 +86,7 @@ class myLightningModule(LightningModule):
         Rpadded_sens=batch["padded_de"]
         Rpadded_idf=batch["padded_idf_de"]
         Rmasks=batch["mask_de"]
-        EOT=self.tokenizer.eot_token_id
+        EOT=self.tokenizer.sep_token_id
 
         #Get EOT Token id using tokenizer? 
         if isinstance(Hpadded_sens,list):
@@ -206,10 +206,11 @@ class myLightningModule(LightningModule):
 
         #########Find ClipScore#############
         #HEOTLocation.shape =B,S bool
-        #REOTLocation.shape = B,S bool
-        print(HEOTLocation.shape)
-        print(REOTLocation.shape)
-        mask=torch.bmm(HEOTLocation.unsqueeze(-1),REOTLocation.unsqueeze(1))
+        # #REOTLocation.shape = B,S bool
+        # print(HEOTLocation.shape)
+        # print(REOTLocation.shape)
+        mask=torch.logical_and(HEOTLocation.unsqueeze(-1),REOTLocation.unsqueeze(1))
+
         #result is B,S,S
         CS=torch.sum(sim*mask,dim=-1).sum(dim=-1).mean()
 
