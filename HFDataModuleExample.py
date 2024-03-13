@@ -222,7 +222,7 @@ class MyDataModule(pl.LightningDataModule):
         # self.train=self.train.set_format(type="torch", columns=["padded_en","padded_idf_en","mask_en","padded_de","padded_idf_de","mask_de"])
 
         self.val=self.train
-        train_size = int(0.9 * len(self.train))
+        train_size = int(0.99 * len(self.train))
         test_size = len(self.train) - train_size
         _, test_dataset = torch.utils.data.random_split(self.train, [train_size, test_size])
         self.test=test_dataset

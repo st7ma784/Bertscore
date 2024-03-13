@@ -45,7 +45,7 @@ class myLightningModule(LightningModule):
         return self.model(*args,**kwargs)
     def test_step(self, batch, batch_idx):
         self.training_step(batch, batch_idx)
-        return {"loss":0}
+        
     def on_test_epoch_start(self, *args, **kwargs):
         self.on_train_epoch_start()
     def on_test_epoch_end(self, *args, **kwargs):
@@ -124,22 +124,22 @@ class myLightningModule(LightningModule):
 
         self.preds.append(torch.stack((P, R, F1), dim=-1).cpu())
         #preds = torch.cat(preds, dim=1 if self.all_layers else 0)
-        self.log("P",P, prog_bar=True,enable_graph=False)
-        self.log("R",R, prog_bar=True,enable_graph=False)
-        self.log("F1",F1, prog_bar=True,enable_graph=False)
-        self.log("ClipScore",CS,prog_bar=True,enable_graph=False)
+        # self.log("P",P, prog_bar=True,enable_graph=False)
+        # self.log("R",R, prog_bar=True,enable_graph=False)
+        # self.log("F1",F1, prog_bar=True,enable_graph=False)
+        # self.log("ClipScore",CS,prog_bar=True,enable_graph=False)
         wandb.log({"P":P,"R":R,"F1":F1,"CS":CS})
-        return {"P":P,"R":R,"F1":F1,"CS":CS}
+        # return {"P":P,"R":R,"F1":F1,"CS":CS}
 
     def on_train_epoch_end(self, *args, **kwargs):
         """
         Log BERTScore to tensorboard.
         """
         preds = torch.cat(self.preds, dim=0)
-        self.log("e_P",preds[0].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
-        self.log("e_R",preds[1].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
-        self.log("e_F1",preds[2].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
-        self.log("e_ClipScore",preds[3].mean())
+        # self.log("e_P",preds[0].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
+        # self.log("e_R",preds[1].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
+        # self.log("e_F1",preds[2].mean(),prog_bar=True,enable_graph=False, rank_zero_only=True)
+        # self.log("e_ClipScore",preds[3].mean())
         wandb.log({"e_P":preds[0].mean(),"e_R":preds[1].mean(),"e_F1":preds[2].mean(),"e_ClipScore":preds[3].mean()})
 
 
