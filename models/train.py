@@ -122,7 +122,7 @@ class myLightningModule(LightningModule):
         F1=F1.mean()
         CS=CS.mean()
 
-        self.preds.append(torch.stack((P, R, F1), dim=-1).cpu())
+        self.preds.append(torch.stack((P, R, F1,CS), dim=-1).cpu())
         #preds = torch.cat(preds, dim=1 if self.all_layers else 0)
         # self.log("P",P, prog_bar=True,enable_graph=False)
         # self.log("R",R, prog_bar=True,enable_graph=False)
