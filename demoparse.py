@@ -63,7 +63,6 @@ class parser(baseparser):
         print("checking prior runs")
         for run in tqdm(runs):
             config=run.config
-
             sortedkeys=list([str(i) for i in config.keys() if i in self.keys_of_interest])
             sortedkeys.sort()
             values=list([str(config[i]) for i in sortedkeys if i in self.keys_of_interest])
