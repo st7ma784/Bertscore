@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 wandb/latest-run
 wandb/run-*
+graphs/**
+graphs/*.svg
+graphs
