@@ -379,7 +379,7 @@ def reduceLinearSumAssignment_v4(rewards:torch.Tensor,maximize=True):
     totalCosts=TotalCosts+one_hot2#deltas
     return totalCosts
 
-def recursiveLinearSumAssignment(rewards:torch.Tensor,maximize=False,factor=0.8):
+def recursiveLinearSumAssignment(rewards:torch.Tensor,maximize=True,factor=0.8):
     cost_neg,next_highest_fn,comb_fn,final_fn=((torch.tensor(float('inf')),torch.min,torch.add,torch.argmin),(torch.tensor(float('-inf')),torch.max,torch.sub,torch.argmax))[maximize] 
 
     dimsizes=torch.tensor(rewards.shape)

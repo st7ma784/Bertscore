@@ -82,12 +82,13 @@ class MyDataModule(pl.LightningDataModule):
             os.makedirs(self.data_dir,exist_ok=True)
         #2014 german to english
         self.dataset = load_dataset("wmt16", "de-en",
+                            #    split='train[99%:]',
                                cache_dir=self.data_dir,
                                data_dir=self.data_dir,
                                streaming=False,
-
+                               
                                )
-        self.get_idf_dict(self.dataset['train'])
+        self.get_idf_dict(self.dataset)
 
     def tokenization(self,sample):
 
@@ -210,6 +211,8 @@ class MyDataModule(pl.LightningDataModule):
 
         if not hasattr(self,"dataset"):
             self.dataset=load_dataset("wmt16", "de-en",
+                               
+                               #split='train[99%:]',
                                cache_dir=self.data_dir,
                                streaming=True,)
             self.get_idf_dict(self.dataset['train'])
@@ -226,7 +229,7 @@ class MyDataModule(pl.LightningDataModule):
         test_size = len(self.train) - train_size
         _, test_dataset = torch.utils.data.random_split(self.train, [train_size, test_size])
         self.test=test_dataset
-
+        '''With retrospect, should have used the split api built into HF. Oh Well!'''
 
 
 

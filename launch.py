@@ -200,7 +200,7 @@ if __name__ == '__main__':
     else: 
         trials=myparser.generate_wandb_trials("st7ma784","BertCLIPScore")
         if len(trials)==1:
-
+            
             trial=trials[0]
         #We'll grab a random trial, BUT have to launch it with KWARGS, so that DDP works.       
         #result = call('{} {} --num_trials=0 {}'.format("python",os.path.realpath(sys.argv[0]),__get_hopt_params(trial)), shell=True)
