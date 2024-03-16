@@ -32,7 +32,7 @@ class baseparser(HyperOptArgumentParser):
                                                                                     "facebook/bart-base",], tunable=True) #len 6
                                                                                     
         #This is important when passing arguments as **config in launcher
-        self.argNames=["dir","log_path","learning_rate","batch_size","modelname","precision","LSAVersion","accelerator","num_trials"]
+        self.argNames=["dir","log_path","learning_rate","padding_length","batch_size","modelname","precision","LSAVersion","accelerator","num_trials"]
     def __dict__(self):
         return {k:self.parse_args().__dict__[k] for k in self.argNames}
 
@@ -65,7 +65,7 @@ class parser(baseparser):
             config=run.config
             sortedkeys=list([str(i) for i in config.keys() if i in self.keys_of_interest])
             sortedkeys.sort()
-            values=list([str(config[i]) for i in sortedkeys if i in self.keys_of_interest])
+            values=list([str(config[i]) for i in sortedkeys])
             code="_".join(values)
             self.run_configs.add(code)
         hyperparams = self.parse_args()
@@ -76,7 +76,7 @@ class parser(baseparser):
 
             sortedkeys=list([str(i) for i in trial.__dict__.keys() if i in self.keys_of_interest])
             sortedkeys.sort()
-            values=list([str(trial.__dict__[k]) for k in sortedkeys if k in trial.__dict__])
+            values=list([str(trial.__dict__[k]) for k in sortedkeys])
             
             code="_".join(values)
             while code in self.run_configs:
