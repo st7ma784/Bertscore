@@ -147,16 +147,17 @@ class MyDataModule(pl.LightningDataModule):
             
         }
     def padding(self, arr, pad_token, dtype=torch.long):
-        lens = [len(a) for a in arr]
-        self.lengths.extend(lens)
+        # self.lengths.extend(lens)
 
-        lens = torch.LongTensor(lens).clamp(max=self.seq_len)
+        lens = torch.LongTensor([len(a) for a in arr]).clamp(max=self.seq_len)
         max_len = self.seq_len
         padded = torch.full((len(arr), max_len),pad_token, dtype=dtype)
-        mask = torch.zeros(len(arr), max_len, dtype=torch.long)
+        mask = torch.zeros_like(padded, dtype=torch.long)
         for i, a in enumerate(arr):
             padded[i, : lens[i]] = torch.tensor(a[:lens[i]], dtype=dtype)
-            mask[i, : lens[i]] = 1
+        
+        mask=padded!=pad_token
+        mask=mask.to(torch.long)
         return padded, lens, mask
 
     def process(self,a):
@@ -219,7 +220,7 @@ class MyDataModule(pl.LightningDataModule):
   
         from torch.utils.data import IterableDataset
         if not isinstance(self.dataset["train"],IterableDataset):
-            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=100,num_proc=min(8,os.cpu_count()))
+            self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"],batch_size=100)
         else:
             self.train=self.dataset['train'].map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"])
         # self.train=self.train.set_format(type="torch", columns=["padded_en","padded_idf_en","mask_en","padded_de","padded_idf_de","mask_de"])
