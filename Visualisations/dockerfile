@@ -1,0 +1,18 @@
+FROM pytorch/pytorch:1.9.0-cuda10.2-cudnn7-runtime
+
+RUN pip install --upgrade pip
+COPY requirements.txt /tmp/
+RUN pip install --requirement /tmp/requirements.txt
+RUN pip install scipy
+RUN pip install gunicorn
+WORKDIR /app
+# COPY . /app needs to follow symlinks too
+COPY . /app
+
+# show the files in the container
+#RUN ls -la /app
+EXPOSE 5000/tcp
+
+# run the app with gunicorn.sh
+CMD ["bash", "gunicorn.sh"]
+

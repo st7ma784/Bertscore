@@ -1,0 +1,414 @@
+<html>
+<head>
+    <title>Linear Sum Assignment</title>
+</head>
+<body>
+<!-- use css -->
+<style>
+    /* make the score and S take mid right and bottom right  of screen respectively  */
+    #score {
+        position: fixed;
+        /* height from bottom is #S height +50 */
+        bottom: 200px;
+        right: 0;
+    }
+    #S {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+    }
+    /* set table cells as  having a fixed size*/
+    td {
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        border: 1px solid black;
+    }
+    /* set table cells as  having a fixed size*/
+    th {
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        border: 1px solid black;
+    }
+    /* Tooltip container */
+    .tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+    }
+
+    /* Tooltip text */
+    .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 240px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+    
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+    }
+    /* buttons bigger */
+    /* right align */
+    .b {
+        font-size: 20px;
+        padding: 15px 32px;
+        text-align: center;
+        display: inline-block;
+        align-self: right;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 12px;
+    }
+    /* Show the tooltip text when you mouse over the tooltip container */
+    .tooltip:hover .tooltiptext {
+    visibility: visible;
+    }
+    /* Align controls to top right */
+    #Controls {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/gh/interactiveJS/interactiveJS@v2.0.1/src/individuals/draggable.min.js"></script>
+<script>
+    function getdata(){
+            var table = document.getElementById("table");
+            data=readTable(table);
+            maximize = document.getElementById("maximize").checked;
+            return {"values"  : data, "maximize" : maximize};
+    }
+    function setupCell(cell){
+        cell.innerHTML = "0";
+        cell.setAttribute("contenteditable", "true");
+        cell.setAttribute("oninput", "doUpdate()");
+    }
+
+    function addRows(){
+       //add a row to the table
+        var table = document.getElementById("table");
+        var row = table.insertRow(-1);
+        // add cells to the row based on the number of columns
+        for (var i = 0; i < table.rows[0].cells.length; i++) {
+            var cell = row.insertCell(-1);
+            setupCell(cell);
+        }
+        //read data 
+        let data = readTable(table);
+        let colours = calculateColours(data); //remake displays
+        drawColours(colours,table);
+        
+    }
+
+    function removeRows(){
+        var table = document.getElementById("table");
+        if (table.rows.length > 1) {
+            table.deleteRow(-1);
+        }
+        doUpdate(); //remake displays
+    }
+
+    function addColumns(){
+        //add columns to the table
+        var table = document.getElementById("table");
+        for (var i = 0; i < table.rows.length; i++) {
+            var cell = table.rows[i].insertCell(-1);
+            setupCell(cell);
+        }
+        let data = readTable(table);
+        let colours = calculateColours(data); //remake displays
+        drawColours(colours,table);    
+    }
+
+    function removeColumns(){
+        //remove columns from the table
+        var table = document.getElementById("table");
+        if (table.rows[0].cells.length > 1) {
+            for (var i = 0; i < table.rows.length; i++) {
+                table.rows[i].deleteCell(-1);
+            }
+        }
+        doUpdate();
+    }
+
+    function fillRandom(){
+        //fill the table with random values
+        var table = document.getElementById("table");
+        // if the table is empty, add a row and column until its 4x4
+        if (table.rows.length == 0) {
+            for (var i = 0; i < 4; i++) {
+                addRows();
+                addColumns();
+            }
+        }
+        for (var i = 0; i < table.rows.length; i++) {
+            var currentRow = table.rows[i];
+            var cells = currentRow.getElementsByTagName("td");
+            for (var j = 0; j < cells.length; j++) {
+                // generate random number between 0 and 1
+                var value = Math.random();
+                cells[j].innerHTML = value;
+            }
+        }
+        var data = readTable(table);
+        var colours=calculateColours(data); //remake displays
+        drawColours(colours,table);
+        doUpdate();
+    }
+    
+    function drawColours(colours,table){
+        // draw the colours on the table
+        // colours is a list of lists of hex values
+        // table is the table to draw on
+        for (var i = 0; i < table.rows.length; i++) {
+            var currentRow = table.rows[i];
+            var cells = currentRow.getElementsByTagName("td");
+            for (var j = 0; j < cells.length; j++) {
+                // set the colour
+                cells[j].style.backgroundColor = "#" + colours[i][j] + colours[i][j] + colours[i][j];
+            }
+        }
+    }
+
+    function readTable(table){
+        var rows = table.getElementsByTagName("tr");
+        var data = [];
+        for (var i = 0; i < rows.length; i++) {
+            var currentRow = table.rows[i];
+            var cells = currentRow.getElementsByTagName("td");
+            var row = [];
+            for (var j = 0; j < cells.length; j++) {
+                // convert to float if possible
+                value=cells[j].innerHTML;
+                row.push(value);
+            }
+            data.push(row);
+        }
+        return data;
+    }
+
+    function calculateColours(data){
+        
+        // calculate the colours
+        // get the max value
+        var max = 0;
+        for (var i = 0; i < data.length; i++) {
+            for (var j = 0; j < data[0].length; j++) {
+                if (data[i][j] > max) {
+                    max = data[i][j];
+                }
+            }
+        }
+        // calculate the colours
+        var colours = [];
+        for (var i = 0; i < data.length; i++) {
+            var row = [];
+            for (var j = 0; j < data[0].length; j++) {
+                // calculate the colour
+                var colour = Math.round((data[i][j] / max) * 255);
+                // convert to hex
+                var hex = colour.toString(16);
+                // add to row
+                row.push(hex);
+            }
+            colours.push(row);
+        }
+
+       return colours; 
+    }
+
+    function drawdata(data){
+        // create div 
+        var div = document.createElement('div');
+        // read data and make into a table 
+        var table = document.createElement('table');
+        // for each row in data
+        var colours = calculateColours(data);
+        //data is a list of lists of floats
+
+        for (var i = 0; i < data.length; i++) {
+            // create a rowlength
+            var row=table.insertRow(-1);
+            //now work out how many columns there are
+            for (var j = 0; j < data[0].length; j++) {
+                //tjheres a type error where data[i] is undefined? 
+                //to fix: check data[i] is defined
+                var cell = row.insertCell(-1);
+                cell.style.backgroundColor = "#" + colours[i][j] + colours[i][j] + colours[i][j];
+            }
+        }
+        // add the table to the div
+        insertDataintoTable(table,data);
+        div.appendChild(table);
+        return div;
+    }
+    function insertDataintoTable(table,data){
+        // insert data into table
+        // data is a list of lists of floats
+        // table is the table to insert into
+        for (var i = 0; i < data.length; i++) {
+            // for each row in data
+            for (var j = 0; j < data[0].length; j++) {
+                // for each column in data
+                // insert the data into the table
+                table.rows[i].cells[j].innerHTML = data[i][j];
+            }
+        }
+
+    }
+    function doUpdate(){
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState === 4) {
+                // this line doesnt work - 
+                var response=JSON.parse(request.response);
+                //tried let and var - should be var
+
+                // remove loss from imgs
+                // append losses to S
+                var S = document.getElementById("S");
+                // remove all children of S
+                while (S.firstChild) {
+                    S.removeChild(S.firstChild);
+                }
+                var score= document.getElementById("score");
+                // remove all children of score
+                while (score.firstChild) {
+                    score.removeChild(score.firstChild);
+                }
+                //create list of strings from key:value pairs
+                // create a list of images from the values
+                // add the divs to the graph
+                var graph = document.getElementById("graph");
+                // remove all children of the graph
+                while (graph.firstChild) {
+                    graph.removeChild(graph.firstChild);
+                }
+
+                for (var key in response) {
+                    if (response.hasOwnProperty(key)) {
+                        //check if key includes "loss"
+                        if (key.includes("loss")){
+                            // add to S 
+                            var div = document.createElement('div');
+                            div.innerHTML = key + " : " + response[key];
+                            S.appendChild(div);
+                        } //now check scores 
+                        else if(key.includes("score")){
+                            // add to score
+                            var div = document.createElement('div');
+                            div.innerHTML = key + " : " + response[key];
+                            score.appendChild(div);
+                        }
+                        else{   //gonna assume is data
+                            var data = response[key];
+                            // data is something like [[1.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 0.0], [1.0, 0.0], [1.0, 0.0]]
+                            // data is a list of lists of floats 
+                            // we need to convert it to a list of lists of strings
+                            var debug = document.getElementById("S");
+                            // debug.innerHTML.appendChild(data);
+                            // make sure every value in every row is a float
+                            for (var i = 0; i < data.length; i++) {
+                                for (var j = 0; j < data[0].length; j++) {
+                                    data[i][j] = parseFloat(data[i][j]);
+                                }
+                            }
+                            // check data is a sensible shape, the same as the table then draw it
+                            var table = document.getElementById("table");
+                            var maindata=readTable(table);
+                            if (data.length != maindata.length) {
+                                console.log("data has wrong number of rows");
+                                console.log("data has " + data.length + " rows");
+                                console.log("table has " + maindata.length + " rows");
+                                //show raw data
+                                console.log(data);
+                            }
+                            else{
+                                var div = document.createElement('div');
+                                div.innerHTML = key;
+                                console.log(data);
+
+                                var tablediv=drawdata(data);
+                                div.appendChild(tablediv);
+                                graph.appendChild(div);
+                            }
+                        }
+                    }
+                } 
+
+            }
+        };
+        const action = "POST";
+        // get endpoint from the server host environment
+        // const endpoint = "http://"+window.location.hostname+":5000/demo/data";
+
+
+        //const endpoint = "http://scc-lanfotech.lancs.ac.uk:81/lsa/data";
+        const endpoint = "http://"+window.location.hostname+":5000/lsa/data";
+        //get endpoint from the server
+        // this may vary depending on the server
+        //const endpoint = "http://"+window.location.hostname+":5000/data";
+
+        request.open(action, endpoint);
+        request.setRequestHeader("Content-Type", "application/json");
+        // convert data to JSON string
+        // make dict into json 
+        var data = JSON.stringify(getdata());
+        request.send(data);
+    }
+
+    
+</script>
+<h1> Visualization for LSA </h1>
+<div id="Controls">
+
+<button type="button" class="b" id="add_rows" onclick="addRows()">Add Rows</button>
+<button type="button" class="b" id="remove_rows" onclick="removeRows()">Remove Rows</button>
+<button type="button" class="b" id="add_columns" onclick="addColumns()">Add Columns</button>
+<button type="button" class="b" id="remove_columns" onclick="removeColumns()">Remove Columns</button>
+<!-- add checkbox for maximize  with name next to it "Maximize score"--> 
+<input type="checkbox" id="maximize" name="maximize" value="maximize" checked>Maximize Score</input>
+<!-- fill with random -->
+<button type="button" class="b" id="fill_rand" onclick="fillRandom()">Fill with Random</button>
+<div class="tooltip">How To use...
+    <span class="tooltiptext">Build the table with rows and columns and 
+        watch how different LSA approximations perform<br>  
+      </span>
+  </div>
+<!-- checkbox for using normed or not... when changed do update -->
+</div>
+
+<div class="tooltip">How To use...
+  <span class="tooltiptext">This app shows the way different LSA approximations behave. Again, this trials different methods as described in Stephen Mander's Thesis. <br>
+    </span>
+</div>
+<div class="container">
+    <!-- insert interactive table of size x, y -->
+    <!-- each cell is editable -->
+    <!-- on click, trigger do update -->
+    <table id= "table"> 
+        <!-- each row in data -->
+
+    </table>
+</div> 
+<!-- add horizontal break -->
+
+<div id="graph">
+    <!-- insert graph here -->
+    <!-- graph should be updated on click -->
+    <!-- graph should be organised neatly as name : image in a grid -->
+
+
+</div>
+
+
+<div id="S"></div>
+<div id="loss"></div>
+<div id="score"></div>
+</html>

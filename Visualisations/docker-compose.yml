@@ -1,0 +1,10 @@
+version: "3"
+services:
+
+  demo: 
+    build: .
+    container_name: demo
+    restart: always
+    ports:
+    # open port 5001 on host to port 5000 
+      - "5000:5000"
