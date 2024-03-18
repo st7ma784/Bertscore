@@ -8,7 +8,7 @@ class baseparser(HyperOptArgumentParser):
         super().__init__( *args,strategy=strategy, add_help=False) # or random search
         self.add_argument("--dir",default=os.path.join(base,"data") ,type=str)
         self.add_argument("--log_path",default=os.path.join(base,"logs/"),type=str)
-        # self.opt_list("--learning_rate", default=0.0001, type=float, options=[2e-4,1e-4,5e-5,1e-5,4e-6], tunable=True)
+        self.opt_list("--precision", default="None", type=str, options=["e5m2","e4m3"], tunable=True)
         self.opt_list("--batch_size", default=180, type=int)
         
         #INSERT YOUR OWN PARAMETERS HERE
@@ -53,7 +53,7 @@ class parser(baseparser):
 
         super().__init__( *args,strategy=strategy, add_help=False,**kwargs) # or random search
         self.run_configs=set()
-        self.keys_of_interest=set(["LSAVersion","all_layers","modelname","padding_length","perfect_match"])
+        self.keys_of_interest=set(["LSAVersion","all_layers","modelname","padding_length","perfect_match","precision"])
 
     def generate_wandb_trials(self,entity,project):
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
