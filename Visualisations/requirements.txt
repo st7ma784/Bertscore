@@ -2,3 +2,4 @@ flask[async]
 numpy
 matplotlib
 typing
+git+https://github.com/pytorch-labs/float8_experimental.git

@@ -82,7 +82,8 @@
             var table = document.getElementById("table");
             data=readTable(table);
             maximize = document.getElementById("maximize").checked;
-            return {"values"  : data, "maximize" : maximize};
+            fp8=document.getElementById("fp8").value
+            return {"values"  : data, "maximize" : maximize,"precision":fp8};
     }
     function setupCell(cell){
         cell.innerHTML = "0";
@@ -375,6 +376,11 @@
 <!-- add checkbox for maximize  with name next to it "Maximize score"--> 
 <input type="checkbox" id="maximize" name="maximize" value="maximize" checked>Maximize Score</input>
 <!-- fill with random -->
+<select name="Precision" id="fp8" onclick="doUpdate()">
+    <option value="E5M2">E5M2</option>
+    <option value="E4M3">E4M3</option>
+    <option value="32">32</option>
+  </select>
 <button type="button" class="b" id="fill_rand" onclick="fillRandom()">Fill with Random</button>
 <div class="tooltip">How To use...
     <span class="tooltiptext">Build the table with rows and columns and 

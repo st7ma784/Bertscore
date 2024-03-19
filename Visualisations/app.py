@@ -68,9 +68,15 @@ async def getplots():
     #any nan values are converted to 0 and remove non-numeric values
     values=[[process(x) for x in row] for row in data["values"]]
     maximize=data["maximize"]
+    fp8=data["precision"]
     x=torch.tensor(values,dtype=torch.float32)
     #logging.warning("values"+str(values))
     #log size of x to console 
+    if fp8=="E5M2":
+
+
+    elif fp8=="E4M3":
+        
 
     out={}
     # check if x is square i.e shape[0]==shape[1]
