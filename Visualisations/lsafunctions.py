@@ -59,6 +59,8 @@ def get_all_LSA_fns():
     #returns list of all other fns in this file that take a tensor as input.
     functions={
         "my function": MyLSA,
+        "FP8Approximation": FP8LSA,
+
         #"grad_fn":recursiveLinearSumAssignment_grad,
         #outputconversion(no_for_loop_MyLinearSumAssignment),
         #outputconversion(no_for_loop_triu_MyLinearSumAssignment),
@@ -113,6 +115,56 @@ def MyLSA(TruthTensor, maximize=True,lookahead=2):
         #print(deltas)
         #draw(deltas.unsqueeze(1))
         col_index=torch.argmax(torch.abs(deltas)) # this is the column to grab,  Note this measures step so its not important to do argmin...
+        #print(str(col_index.item()) + " selected ")
+        if small_dim==1:
+            row_index=finder(array[:,col_index]) 
+            results[row_index,col_index]=1
+            mask[:,col_index]=1 #mask out the column 
+            mask[row_index]=1
+        else: 
+            row_index=finder(array[col_index])
+            #now we have to swap the row and column index 
+            # results[col_index,row_index]=1
+            results[col_index,row_index]=1
+
+            mask[:,row_index]=1 #mask out the column 
+            mask[col_index]=1
+        #results[row_index,col_index]=1
+        #print("mask is now")
+        #draw(mask)
+    return results
+def FP8LSA(TruthTensor, maximize=True):
+    '''
+    If Maximize is False, I'm trying to minimize the costs. 
+    This means that the mask must instead make all the weights far above all the others - 'inf' kind of thing. 
+    '''
+    #assert truthtensor is 2d and nonzero
+    # assert len(TruthTensor.shape)==2
+    # assert TruthTensor.shape[0]>0 and TruthTensor.shape[1]>0
+    # assert lookahead>0
+    # assert torch.sum(TruthTensor==0)==0
+
+    mask=torch.zeros(TruthTensor.shape,device=TruthTensor.device,dtype=torch.int8)
+    results=torch.zeros_like(TruthTensor)
+
+    finder=torch.argmax if maximize else torch.argmin
+    
+    #subtract the min value from all values so that the min value is 0
+    TruthTensor=TruthTensor-torch.min(torch.min(TruthTensor,dim=1,keepdim=True).values,dim=0).values
+    replaceval=torch.tensor([float(-1)]) if maximize else torch.max(TruthTensor).to(dtype=torch.float32)+1
+    replaceval=replaceval.to(TruthTensor.device)
+    dimsizes=torch.tensor(TruthTensor.shape)
+    #select index of the smallest value
+    bigdim=torch.argmax(dimsizes)   # 0 
+    small_dim=1-bigdim          # 1
+
+    for i in range(TruthTensor.shape[small_dim]): # number of rows 
+        #print("masked input is: ")
+        #draw(torch.where(mask==0,TruthTensor,replaceval))
+        array=torch.where(mask==0,TruthTensor,replaceval)
+        #print(deltas)
+        #draw(deltas.unsqueeze(1))
+        col_index=finder(finder(array)) # this is the column to grab,  Note this measures step so its not important to do argmin...
         #print(str(col_index.item()) + " selected ")
         if small_dim==1:
             row_index=finder(array[:,col_index]) 
