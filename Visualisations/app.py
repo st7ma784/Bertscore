@@ -18,6 +18,12 @@ functions=get_all_LSA_fns()
 #normedfunctions={i:get_lsa_fn(i) for i in range(1,17)}
 app = Flask(__name__,template_folder='.')
 
+
+def convert_to_fp8_e5m2(T):
+    return T.to(torch.float8_e5m2).to(torch.float32)
+def convert_to_fp8_e4m3(T):
+    return T.to(torch.float8_e4m3fn).to(torch.float32)
+
     
 def square(logits,img_buf = BytesIO()):
     #a function that takes numpy logits and plots them on an x and y axis
@@ -73,10 +79,10 @@ async def getplots():
     #logging.warning("values"+str(values))
     #log size of x to console 
     if fp8=="E5M2":
-
+        x=convert_to_fp8_e5m2(x)
 
     elif fp8=="E4M3":
-        
+        x=convert_to_fp8_e4m3(x)
 
     out={}
     # check if x is square i.e shape[0]==shape[1]
