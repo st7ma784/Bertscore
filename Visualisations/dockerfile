@@ -1,5 +1,6 @@
-FROM pytorch/pytorch:1.9.0-cuda10.2-cudnn7-runtime
-
+FROM pytorch/pytorch:latest
+RUN apt-get update
+RUN apt-get -y install git
 RUN pip install --upgrade pip
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt
