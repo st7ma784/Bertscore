@@ -29,11 +29,11 @@ class myLightningModule(LightningModule):
         self.all_layers=all_layers
         self.idf_dict=idf_dict
         self.shuffle=perfect_match
-        self.precision=self.convert_null
+        self.precisionfn=self.convert_null
         if precision=="e5m2":
-            self.precision=self.convert_to_fp8_e5m2
+            self.precisionfn=self.convert_to_fp8_e5m2
         elif precision=="e4m3":
-            self.precision=self.convert_to_fp8_e4m3
+            self.precisionfn=self.convert_to_fp8_e4m3
 
 
     def convert_to_fp8_e5m2(self,T):
@@ -206,8 +206,8 @@ class myLightningModule(LightningModule):
                 .view(L * B, ref_embedding.size(1), D)
             )
         batch_size = ref_embedding.size(0)
-        hyp_embedding=self.precision(hyp_embedding)
-        ref_embedding=self.precision(ref_embedding)
+        hyp_embedding=self.precisionfn(hyp_embedding)
+        ref_embedding=self.precisionfn(ref_embedding)
         sim = torch.bmm(hyp_embedding, ref_embedding.transpose(1, 2))
         # masks = torch.bmm(hyp_masks.unsqueeze(2).float(), ref_masks.unsqueeze(1).float())
         # if self.all_layers:
