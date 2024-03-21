@@ -8,7 +8,7 @@ class baseparser(HyperOptArgumentParser):
         super().__init__( *args,strategy=strategy, add_help=False) # or random search
         self.add_argument("--dir",default=os.path.join(base,"data") ,type=str)
         self.add_argument("--log_path",default=os.path.join(base,"logs/"),type=str)
-        self.opt_list("--precision", default="None", type=str, options=["e5m2","e4m3"], tunable=True)
+        self.opt_list("--precision", default="None", type=str, options=["e5m2","e4m3","None"], tunable=True)
         self.opt_list("--batch_size", default=180, type=int)
         
         #INSERT YOUR OWN PARAMETERS HERE

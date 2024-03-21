@@ -50,9 +50,9 @@ class SummaryDataset(Dataset):
             - :param: `numericalize` : a function that takes a list of tokens and
                     return list of token indexes.
         """
-        a=arr["translation"]
-        arr_en= self.sent_encode(a["en"])
-        arr_de=self.sent_encode(a["de"])
+        a=arr
+        arr_en= self.sent_encode(a["text"])
+        arr_de=self.sent_encode(a["summary"])
         idf_weights_en = [self.idf_dict[i] for i in self.sent_encode(a["en"])]
         idf_weights_de = [self.idf_dict[i] for i in self.sent_encode(a["de"])]
         pad_token = self.tokenizer.pad_token_id
@@ -103,7 +103,7 @@ class MyDataModule(pl.LightningDataModule):
             self.tokenizer=CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32",cache_dir=self.data_dir)
         max_len = self.tokenizer.model_max_length if hasattr(self.tokenizer, "model_max_length") else self.tokenizer.max_len
         
-        self.seq_len = kwargs.get("padding_length", 384)
+        self.seq_len = kwargs.get("padding_length", 15000)
 
         if isinstance(self.tokenizer, GPT2Tokenizer) or isinstance(self.tokenizer, RobertaTokenizer):
             # for RoBERTa and GPT-2
@@ -163,8 +163,8 @@ class MyDataModule(pl.LightningDataModule):
             - :param: `numericalize` : a function that takes a list of tokens and
                     return list of token indexes.
         """
-        arr = [(self.sent_encode(a["en"]),
-                   self.sent_encode(a["de"]))
+        arr = [(self.sent_encode(a["text"]),
+                   self.sent_encode(a["summary"]))
                     if ("en" in a and
                      "de" in a) else (None,None) for a in arr["translation"]
         ]
@@ -207,13 +207,10 @@ class MyDataModule(pl.LightningDataModule):
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir,exist_ok=True)
         #2014 german to english
-        self.data = load_dataset("wmt16", "de-en",
-                            #    split='train[99%:]',
+        self.data = load_dataset("billsum",                                
+                               split='train',
                                cache_dir=self.data_dir,
-                               data_dir=self.data_dir,
-                               streaming=False,
-                               
-                               )
+                               streaming=False,)
         #print(self.data.__dir__())
         self.get_idf_dict(self.data['train'])
 
@@ -236,7 +233,7 @@ class MyDataModule(pl.LightningDataModule):
     def process(self,a):
                   
     
-        return chain.from_iterable([ self.batch_encode(a["translation"][key]) for key in a["translation"].keys()])
+        return chain.from_iterable([ self.batch_encode(a[key]) for key in a.keys()])
                
                 
     def get_idf_dict(self, arr):
@@ -250,7 +247,7 @@ class MyDataModule(pl.LightningDataModule):
             - :param: `nthreads` (int) : number of CPU threads to use
         """
         tokenizername = type(self.tokenizer).__name__
-        split_name="wmt16de-en"
+        split_name="Billsum"
         #check for existing idf_dict
         self.idf_dict=defaultdict(lambda: log((len(arr) + 1) / len(arr)))
         if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json"):
@@ -280,13 +277,12 @@ class MyDataModule(pl.LightningDataModule):
         from datasets import load_dataset
 
         if not hasattr(self,"data"):
-            self.data=load_dataset("wmt16", "de-en",
-                               
-                               #split='train[99%:]',
+            self.data=load_dataset("billsum",                                
+                               split='train',
                                cache_dir=self.data_dir,
                                streaming=True,)
             self.get_idf_dict(self.data['train'])
-            self.dataset=self.data.map(lambda x: self.collate_idf(x), batched=True, remove_columns=["translation"])
+            self.dataset=self.data.map(lambda x: self.collate_idf(x), batched=True, remove_columns=["text","summary","title"])
         else:
             self.dataset=SummaryDataset(self.data['train'],self.idf_dict,self.tokenize,tokenizer=self.tokenizer,seq_len=self.seq_len)
         train_size = int(0.99 * len(self.dataset))
