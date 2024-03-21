@@ -5,7 +5,7 @@ on:
     paths:
       - model/*
       - HFDataModuleExample.py
-      - ./dockerfile
+      - dockerfile
       - lsafunctions.py
       - launch.py
       - demoparse.py
