@@ -32,7 +32,7 @@ class SummaryDataset(Dataset):
         self.tokenize=tokenizer_fn
         self.idf_dict=idf_dict
         self.dataset=HFDataset
-        print(self.dataset.__dir__())
+        # print(self.dataset.__dir__())
     def sent_encode(self, sent):
         "Encoding as sentence based on the self.tokenizer"
         sent = sent.strip()
@@ -214,7 +214,7 @@ class MyDataModule(pl.LightningDataModule):
                                streaming=False,
                                
                                )
-        print(self.data.__dir__())
+        #print(self.data.__dir__())
         self.get_idf_dict(self.data['train'])
 
     def tokenization(self,sample):
