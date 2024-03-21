@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - model/*
+      - HFDataModuleExample.py
       - ./dockerfile
       - lsafunctions.py
       - launch.py
