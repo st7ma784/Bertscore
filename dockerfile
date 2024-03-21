@@ -1,5 +1,7 @@
 # Use the pytorch base image
 FROM pytorch/pytorch:latest
+RUN apt-get -y update
+RUN apt-get -y install git
 
 # Copy the requirements.txt file to the container
 COPY requirements.txt /app/requirements.txt
