@@ -53,8 +53,8 @@ class SummaryDataset(Dataset):
         a=arr
         arr_en= self.sent_encode(a["text"])
         arr_de=self.sent_encode(a["summary"])
-        idf_weights_en = [self.idf_dict[i] for i in self.sent_encode(a["en"])]
-        idf_weights_de = [self.idf_dict[i] for i in self.sent_encode(a["de"])]
+        idf_weights_en = [self.idf_dict[str(i)] for i in arr_en]
+        idf_weights_de = [self.idf_dict[str(i)] for i in arr_de]
         pad_token = self.tokenizer.pad_token_id
 
         padded_en, lens_en, mask_en = self.padding(arr_en, pad_token, dtype=torch.long)
@@ -212,7 +212,7 @@ class MyDataModule(pl.LightningDataModule):
                                cache_dir=self.data_dir,
                                streaming=False,)
         #print(self.data.__dir__())
-        self.get_idf_dict(self.data['train'])
+        self.get_idf_dict(self.data)
 
     def tokenization(self,sample):
 
@@ -281,10 +281,10 @@ class MyDataModule(pl.LightningDataModule):
                                split='train',
                                cache_dir=self.data_dir,
                                streaming=True,)
-            self.get_idf_dict(self.data['train'])
+            self.get_idf_dict(self.data)
             self.dataset=self.data.map(lambda x: self.collate_idf(x), batched=True, remove_columns=["text","summary","title"])
         else:
-            self.dataset=SummaryDataset(self.data['train'],self.idf_dict,self.tokenize,tokenizer=self.tokenizer,seq_len=self.seq_len)
+            self.dataset=SummaryDataset(self.data,self.idf_dict,self.tokenize,tokenizer=self.tokenizer,seq_len=self.seq_len)
         train_size = int(0.99 * len(self.dataset))
         test_size = len(self.dataset) - train_size
         self.train,self.test = torch.utils.data.random_split(self.dataset, [train_size, test_size])

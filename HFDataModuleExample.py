@@ -169,8 +169,8 @@ class MyDataModule(pl.LightningDataModule):
                      "de" in a) else (None,None) for a in arr["translation"]
         ]
         [arr_en,arr_de] = zip(*arr)
-        idf_weights_en = [[self.idf_dict[i] for i in a] for a in arr_en]
-        idf_weights_de = [[self.idf_dict[i] for i in a] for a in arr_de]
+        idf_weights_en = [[self.idf_dict[str(i)] for i in a] for a in arr_en]
+        idf_weights_de = [[self.idf_dict[str(i)] for i in a] for a in arr_de]
         pad_token = self.tokenizer.pad_token_id
 
         padded_en, lens_en, mask_en = self.padding(arr_en, pad_token, dtype=torch.long)
