@@ -20,7 +20,7 @@ class baseparser(HyperOptArgumentParser):
         self.opt_list("--accelerator", default='auto', type=str, options=['auto'], tunable=True)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
         #which model to use as inspired by the list on the bertscore github
-        self.opt_list("--padding_length", default=15000, type=int, options=[15000,20000], tunable=True) #len 2
+        self.opt_list("--padding_length", default=15000, type=int, options=[15000], tunable=True) #len 2
         self.opt_list("--modelname", default="bert-base-uncased", type=str, options=["bert-base-uncased",
                                                                                     "roberta-base",
                                                                                     "xlm-roberta-base",
