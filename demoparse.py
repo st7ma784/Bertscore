@@ -26,6 +26,7 @@ class baseparser(HyperOptArgumentParser):
                                                                                     "xlm-roberta-base",
                                                                                     "distilbert-base-uncased",
                                                                                     "albert-base-v2",
+                                                                                    "LiqiangXiao/summarization",
                                                                                     #"xlnet-base-cased", #throws int to large error
                                                                                     # "xml-roberta-large",
                                                                                     #"t5-small", # needs to be passed decoder ids as input too **sigh 
