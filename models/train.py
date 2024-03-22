@@ -25,6 +25,8 @@ class myLightningModule(LightningModule):
         self.lsa_algorithm=self.algorithms[LSAVersion]
         #self.lsa_algorithm should take a matrix and return a one_hot vector of the same shape.
         self.tokenizer=tokenizer
+        TrueSequenceLength=self.tokenizer.model_max_length if hasattr(self.tokenizer, "model_max_length") else self.tokenizer.max_len
+        self.log("SeqLen",TrueSequenceLength)
         self.model=model
         self.all_layers=all_layers
         self.idf_dict=idf_dict
