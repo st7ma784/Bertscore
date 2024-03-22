@@ -142,7 +142,7 @@ class myLightningModule(LightningModule):
         # self.log("R",R, prog_bar=True,enable_graph=False)
         # self.log("F1",F1, prog_bar=True,enable_graph=False)
         # self.log("ClipScore",CS,prog_bar=True,enable_graph=False)
-        wandb.log({"P":P,"R":R,"F1":F1,"CS":CS},commit=(batch_idx%50==0))
+        wandb.log({"P":P,"R":R,"F1":F1,"CS":CS})
         # return {"P":P,"R":R,"F1":F1,"CS":CS}
 
     def on_train_epoch_end(self, *args, **kwargs):
