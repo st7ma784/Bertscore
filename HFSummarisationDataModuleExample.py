@@ -266,7 +266,7 @@ class MyDataModule(pl.LightningDataModule):
                     idf_count.update(tokens)
                 num_sentences+=sents
     #       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
-            idf_dict = {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
+            idf_dict = {idx: max(0,log((num_sentences + 1) / (c + 1))) for (idx, c) in idf_count.items()}
             with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "w") as f:
                 json.dump(idf_dict,f)
         self.idf_dict.update(idf_dict)
