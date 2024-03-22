@@ -232,7 +232,8 @@ class MyDataModule(pl.LightningDataModule):
 
     def process(self,a):
                   
-        sents=max(1,len(a.split(".")))
+        lengths=[[len(sents.split(".")) for sents in a[key]] for key in a.keys()]
+        sents=sum(chain.from_iterable(lengths))
         return chain.from_iterable([ self.batch_encode(a[key]) for key in a.keys()]),sents
                
                 
@@ -250,8 +251,8 @@ class MyDataModule(pl.LightningDataModule):
         split_name="Billsum"
         #check for existing idf_dict
         self.idf_dict=defaultdict(lambda: log((len(arr) + 1) / len(arr)))
-        if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json"):
-            with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "r") as f:
+        if os.path.exists(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict3.json"):
+            with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict3.json", "r") as f:
                 idf_dict=json.load(f)
         else:
             idf_count = Counter()
@@ -267,7 +268,7 @@ class MyDataModule(pl.LightningDataModule):
                 num_sentences+=sents
     #       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
             idf_dict = {idx: max(0,log((num_sentences + 1) / (c + 1))) for (idx, c) in idf_count.items()}
-            with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "w") as f:
+            with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict3.json", "w") as f:
                 json.dump(idf_dict,f)
         self.idf_dict.update(idf_dict)
         return 
