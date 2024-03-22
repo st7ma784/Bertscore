@@ -94,7 +94,7 @@ class SummaryDataset(Dataset):
 
 class MyDataModule(pl.LightningDataModule):
 
-    def __init__(self, Cache_dir='.', batch_size=256,tokenizer=None,**kwargs):
+    def __init__(self, Cache_dir='.', batch_size=4,tokenizer=None,**kwargs):
         super().__init__()
         self.data_dir = Cache_dir
         self.batch_size = batch_size
@@ -259,7 +259,7 @@ class MyDataModule(pl.LightningDataModule):
             # cpu_count=os.cpu_count()
             # with Pool(cpu_count) as p:
             #use map instead
-            dataloader= torch.utils.data.DataLoader(arr, batch_size=200, shuffle=False, num_workers=4, prefetch_factor=3, pin_memory=True,drop_last=False)
+            dataloader= torch.utils.data.DataLoader(arr, batch_size=4, shuffle=False, num_workers=4, prefetch_factor=3, pin_memory=True,drop_last=False)
             for a in tqdm(dataloader):
                 for tokens in self.process(a):
                     idf_count.update(tokens)
@@ -285,9 +285,12 @@ class MyDataModule(pl.LightningDataModule):
             self.dataset=self.data.map(lambda x: self.collate_idf(x), batched=True, remove_columns=["text","summary","title"])
         else:
             self.dataset=SummaryDataset(self.data,self.idf_dict,self.tokenize,tokenizer=self.tokenizer,seq_len=self.seq_len)
-        train_size = int(0.99 * len(self.dataset))
-        test_size = len(self.dataset) - train_size
-        self.train,self.test = torch.utils.data.random_split(self.dataset, [train_size, test_size])
+        # train_size = int(0.99 * len(self.dataset))
+        # test_size = len(self.dataset) - train_size
+        # self.train,self.test = torch.utils.data.random_split(self.dataset, [train_size, test_size])
+        self.train=self.dataset
+        self.val=self.dataset
+        self.test=self.dataset
         #self.test=test_dataset
     
         '''With retrospect, should have used the split api built into HF. Oh Well!'''

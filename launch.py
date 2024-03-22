@@ -3,7 +3,7 @@ import pytorch_lightning
 from pytorch_lightning.callbacks import TQDMProgressBar,EarlyStopping
 import os,sys
 import wandb
-from HFDataModuleExample import MyDataModule
+from HFSummarisationDataModuleExample import MyDataModule
 from models.train import myLightningModule
 from transformers import AutoModel, AutoTokenizer
 
@@ -75,9 +75,9 @@ def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
         dir=config.get("dir",dir)
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
         wandb.finish() # Finish any old runs
-        run=wandb.init(project="BertCLIPFP8Score",entity="st7ma784",name="CBertScore",config=config)
+        run=wandb.init(project="BertCLIPFP8SUMScore",entity="st7ma784",name="CBertScore",config=config)
 
-        logtool= pytorch_lightning.loggers.WandbLogger( project="BertCLIPFP8Score",entity="st7ma784",experiment=run, save_dir=dir)
+        logtool= pytorch_lightning.loggers.WandbLogger( project="BertCLIPFP8SUMScore",entity="st7ma784",experiment=run, save_dir=dir)
         print(config)
 
     else: 
@@ -85,8 +85,8 @@ def wandbtrain(config=None,dir=None,devices=None,accelerator=None,Dataset=None):
         import wandb
         print("here")
         wandb.login(key='9cf7e97e2460c18a89429deed624ec1cbfb537bc')
-        run=wandb.init(project="BertCLIPFP8Score",entity="st7ma784",name="CBertScore",config=config)
-        logtool= pytorch_lightning.loggers.WandbLogger( project="BertCLIPFP8Score",entity="st7ma784",experiment=run, save_dir=dir)
+        run=wandb.init(project="BertCLIPFP8SUMScore",entity="st7ma784",name="CBertScore",config=config)
+        logtool= pytorch_lightning.loggers.WandbLogger( project="BertCLIPFP8SUMScore",entity="st7ma784",experiment=run, save_dir=dir)
         config=run.config.as_dict()
     
     train(config,dir,devices,accelerator,Dataset,logtool)
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
     #OR To run with Default Args
     else: 
-        trials=myparser.generate_wandb_trials("st7ma784","BertCLIPFP8Score")
+        trials=myparser.generate_wandb_trials("st7ma784","BertCLIPFP8SUMScore")
         if len(trials)==1:
             
             trial=trials[0]

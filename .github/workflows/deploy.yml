@@ -5,7 +5,7 @@ on:
     paths:
       - model/*
       - HFDataModuleExample.py
-      - HFSummarisationDataModuleExample.py
+      - HFSummarisationdockerDataModuleExample.py
       - dockerfile
       - lsafunctions.py
       - launch.py
