@@ -169,8 +169,8 @@ class MyDataModule(pl.LightningDataModule):
                      "de" in a) else (None,None) for a in arr["translation"]
         ]
         [arr_en,arr_de] = zip(*arr)
-        idf_weights_en = [[self.idf_dict[i] for i in a] for a in arr_en]
-        idf_weights_de = [[self.idf_dict[i] for i in a] for a in arr_de]
+        idf_weights_en = [[self.idf_dict[str(i)] for i in a] for a in arr_en]
+        idf_weights_de = [[self.idf_dict[str(i)] for i in a] for a in arr_de]
         pad_token = self.tokenizer.pad_token_id
 
         padded_en, lens_en, mask_en = self.padding(arr_en, pad_token, dtype=torch.long)
@@ -232,8 +232,8 @@ class MyDataModule(pl.LightningDataModule):
 
     def process(self,a):
                   
-    
-        return chain.from_iterable([ self.batch_encode(a[key]) for key in a.keys()])
+        sents=max(1,len(a.split(".")))
+        return chain.from_iterable([ self.batch_encode(a[key]) for key in a.keys()]),sents
                
                 
     def get_idf_dict(self, arr):
@@ -255,14 +255,16 @@ class MyDataModule(pl.LightningDataModule):
                 idf_dict=json.load(f)
         else:
             idf_count = Counter()
-            num_docs = len(arr)
+            num_sentences = 0
             # cpu_count=os.cpu_count()
             # with Pool(cpu_count) as p:
             #use map instead
             dataloader= torch.utils.data.DataLoader(arr, batch_size=4, shuffle=False, num_workers=4, prefetch_factor=3, pin_memory=True,drop_last=False)
             for a in tqdm(dataloader):
-                for tokens in self.process(a):
+                alltokens,sents=self.process(a)
+                for tokens in alltokens:
                     idf_count.update(tokens)
+                num_sentences+=sents
     #       idf_count.update(chain.from_iterable(p.map(self.process, arr)))
             idf_dict = {idx: log((num_docs + 1) / (c + 1)) for (idx, c) in idf_count.items()}
             with open(f"{self.data_dir}/{split_name}_{tokenizername}_idf_dict2.json", "w") as f:
