@@ -260,7 +260,7 @@ class MyDataModule(pl.LightningDataModule):
             # cpu_count=os.cpu_count()
             # with Pool(cpu_count) as p:
             #use map instead
-            dataloader= torch.utils.data.DataLoader(arr, batch_size=4, shuffle=False, num_workers=4, prefetch_factor=3, pin_memory=True,drop_last=False)
+            dataloader= torch.utils.data.DataLoader(arr, batch_size=4, shuffle=False, num_workers=4, prefetch_factor=3, pin_memory=False,drop_last=False)
             for a in tqdm(dataloader):
                 alltokens,sents=self.process(a)
                 for tokens in alltokens:
