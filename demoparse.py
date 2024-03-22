@@ -30,7 +30,7 @@ class baseparser(HyperOptArgumentParser):
                                                                                     #"xlnet-base-cased", #throws int to large error
                                                                                     # "xml-roberta-large",
                                                                                     #"t5-small", # needs to be passed decoder ids as input too **sigh 
-                                                                                    "facebook/bart-base",], tunable=True) #len 6
+                                                                                    "facebook/bart-large-cnn",], tunable=True) #len 6
                                                                                     
         #This is important when passing arguments as **config in launcher
         self.argNames=["dir","log_path","learning_rate","padding_length","batch_size","modelname","precision","LSAVersion","accelerator","num_trials"]
