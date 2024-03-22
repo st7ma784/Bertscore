@@ -9,7 +9,7 @@ class baseparser(HyperOptArgumentParser):
         self.add_argument("--dir",default=os.path.join(base,"data") ,type=str)
         self.add_argument("--log_path",default=os.path.join(base,"logs/"),type=str)
         self.opt_list("--precision", default="None", type=str, options=["e5m2","e4m3","None"], tunable=True)
-        self.opt_list("--batch_size", default=180, type=int)
+        self.opt_list("--batch_size", default=4, type=int)
         
         #INSERT YOUR OWN PARAMETERS HERE
         from lsafunctions import get_all_LSA_fns
@@ -20,7 +20,7 @@ class baseparser(HyperOptArgumentParser):
         self.opt_list("--accelerator", default='auto', type=str, options=['auto'], tunable=True)
         self.opt_list("--num_trials", default=0, type=int, tunable=False)
         #which model to use as inspired by the list on the bertscore github
-        self.opt_list("--padding_length", default=128, type=int, options=[128,384], tunable=True) #len 2
+        self.opt_list("--padding_length", default=15000, type=int, options=[15000,20000], tunable=True) #len 2
         self.opt_list("--modelname", default="bert-base-uncased", type=str, options=["bert-base-uncased",
                                                                                     "roberta-base",
                                                                                     "xlm-roberta-base",
