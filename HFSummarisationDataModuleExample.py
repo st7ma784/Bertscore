@@ -103,7 +103,7 @@ class MyDataModule(pl.LightningDataModule):
             self.tokenizer=CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32",cache_dir=self.data_dir)
         max_len = self.tokenizer.model_max_length if hasattr(self.tokenizer, "model_max_length") else self.tokenizer.max_len
         
-        self.seq_len = kwargs.get("padding_length", 15000)
+        self.seq_len = min(max_len,kwargs.get("padding_length", 15000))
 
         if isinstance(self.tokenizer, GPT2Tokenizer) or isinstance(self.tokenizer, RobertaTokenizer):
             # for RoBERTa and GPT-2
