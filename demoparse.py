@@ -82,9 +82,10 @@ class parser(baseparser):
             code="_".join(values)
             while code in self.run_configs:
                 trial=hyperparams.generate_trials(1)[0]
-                sortedkeys=list([str(i) for i in self.keys_of_interest])
+                sortedkeys=list([str(i) for i in trial.__dict__.keys() if i in self.keys_of_interest])
                 sortedkeys.sort()
-                values=list([str(trial.__dict__[k]) for k in sortedkeys if k in trial.__dict__])
+                values=list([str(trial.__dict__[k]) for k in sortedkeys])
+            
                 code="_".join(values)
         return trials
         
