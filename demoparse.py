@@ -73,6 +73,7 @@ class parser(baseparser):
         NumTrials=hyperparams.num_trials if hyperparams.num_trials>0 else 1
         trials=hyperparams.generate_trials(NumTrials)
         print("checking if already done...")
+        trial_list=[]
         for trial in tqdm(trials):
 
             sortedkeys=list([str(i) for i in trial.__dict__.keys() if i in self.keys_of_interest])
@@ -87,7 +88,8 @@ class parser(baseparser):
                 values=list([str(trial.__dict__[k]) for k in sortedkeys])
             
                 code="_".join(values)
-        return trials
+            trial_list.append(trial)
+        return trial_list
         
 # Testing to check param outputs
 if __name__== "__main__":
