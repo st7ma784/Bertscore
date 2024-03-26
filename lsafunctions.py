@@ -296,7 +296,7 @@ def reduceLinearSumAssignment_vm(rewards:torch.Tensor,cost_neg:torch.Tensor,next
     Cost_total= torch.add(Costs,Costs2)
     
     return Cost_total
-def reduceLinearSumAssignment_v2(rewards:torch.Tensor,maximize=False):
+def reduceLinearSumAssignment_v2(rewards:torch.Tensor,maximize=True):
     Topv,topi=rewards.topk(k=2,dim=1,largest=maximize)
     costs=Topv[:,0].unsqueeze(1).repeat(1,rewards.shape[-1])
     #print(costs.shape)
@@ -396,7 +396,7 @@ def recursiveLinearSumAssignment(rewards:torch.Tensor,maximize=True,factor=0.8):
     #return torch.arange(rewards.shape[0],device=rewards.device),col_index
     output=(torch.arange(rewards.shape[small_dim],device=rewards.device),col_index) if small_dim==1 else (col_index,torch.arange(rewards.shape[small_dim],device=rewards.device))
     return output
-def recursiveLinearSumAssignment_grad(rewards:torch.Tensor,maximize=False,factor=0.8):
+def recursiveLinearSumAssignment_grad(rewards:torch.Tensor,maximize=True,factor=0.8):
     cost_neg,next_highest_fn,comb_fn,final_fn=((torch.tensor(float('inf')),torch.min,torch.add,torch.argmin),(torch.tensor(float('-inf')),torch.max,torch.sub,torch.argmax))[maximize] 
 
     dimsizes=torch.tensor(rewards.shape)
