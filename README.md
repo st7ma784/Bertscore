@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 ## Demo 
 
-If you wish to play more interactively with the available code, a webGUI can either be found at dockerhub as st7ma784/lsavis,
+If you wish to play more interactively with the available code, a webGUI can either be found at dockerhub as st7ma784/lsavis, (on port 5000)
 or compiled locally by building the Visualisations folder.  
 
 
