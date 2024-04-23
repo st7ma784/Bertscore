@@ -132,3 +132,6 @@ wandb/run-*
 graphs/**
 graphs/*.svg
 graphs/
+wandb/
+graphs/
+Cgraphs/

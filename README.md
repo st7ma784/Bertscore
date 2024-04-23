@@ -1,4 +1,9 @@
 
+
+
+
+
+
 ##To get the Bertscore implementation
 
 ```
@@ -9,5 +14,5 @@ pip install .
 
 ## this library is designed to benchmark the bertscore metric using a couple of datasets with differing improvements.
 
-
+This is the official implementation of LiSASCORE as presented. 
 

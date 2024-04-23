@@ -4,5 +4,4 @@
     - A demonstration that Linear Sum assignment removes double-counting in semantic-based metrics
     - Benchmarking translation and summarisation tasks against 6 common models including BERT,BART,Roberta,T5 and more.
   author:
-    - Stephen Mander
-    - Jesse Phillips
+    #removed due to anonymity criteria for submission
