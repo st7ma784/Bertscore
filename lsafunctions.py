@@ -38,8 +38,8 @@ def get_all_LSA_fns():
     return functions
 
 
-def stock_lsa(TruthTensor):
-    return linear_sum_assignment(TruthTensor.detach().cpu())
+def stock_lsa(TruthTensor,maximize=True):
+    return linear_sum_assignment(TruthTensor.detach().cpu(),maximize=maximize)
 def MyLSA(TruthTensor, maximize=True,lookahead=2):
     '''
     If Maximize is False, I'm trying to minimize the costs. 
