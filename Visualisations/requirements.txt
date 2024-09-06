@@ -3,4 +3,5 @@ numpy
 matplotlib
 typing
 gunicorn
+scipy
 git+https://github.com/pytorch-labs/float8_experimental.git
