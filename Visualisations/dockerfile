@@ -1,11 +1,10 @@
 FROM pytorch/pytorch:latest
 RUN apt-get update
 RUN apt-get -y install git
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip --no-cache-dir
 COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
-RUN pip install scipy
-RUN pip install gunicorn
+RUN pip install --requirement /tmp/requirements.txt --no-cache-dir
+
 WORKDIR /app
 # COPY . /app needs to follow symlinks too
 COPY . /app
