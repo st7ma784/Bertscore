@@ -60,7 +60,7 @@ def doFlip(func):
 def get_all_LSA_fns():
     functions={
         "my function": MyLSA,
-        "FP8Approximation": FP8LSA,
+        # "FP8Approximation": FP8LSA,
         "recursive fn":outputconversion(recursiveLinearSumAssignment),
         "recursive fn2 ":outputconversion(recursiveLinearSumAssignment_v2),
         "recursive fn5":outputconversion(recursiveLinearSumAssignment_v5),
