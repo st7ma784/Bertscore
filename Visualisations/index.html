@@ -138,7 +138,62 @@
         doUpdate();
     }
 
-    function fillRandom(){
+    function fillNormal(){
+        //fill the table with random values
+        var table = document.getElementById("table");
+        // if the table is empty, add a row and column until its 4x4
+        if (table.rows.length == 0) {
+            for (var i = 0; i < 4; i++) {
+                addRows();
+                addColumns();
+            }
+        }
+        for (var i = 0; i < table.rows.length; i++) {
+            var currentRow = table.rows[i];
+            var cells = currentRow.getElementsByTagName("td");
+            for (var j = 0; j < cells.length; j++) {
+                // generate random number between 0 and 1
+                   const u1 = Math.random();
+                   const u2 = Math.random();
+    
+                    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                cells[j].innerHTML = z0;
+            }
+        }
+        var data = readTable(table);
+        var colours=calculateColours(data); //remake displays
+        drawColours(colours,table);
+        doUpdate();
+    }
+        function fillHalfNormal(){
+        //fill the table with random values
+        var table = document.getElementById("table");
+        // if the table is empty, add a row and column until its 4x4
+        if (table.rows.length == 0) {
+            for (var i = 0; i < 4; i++) {
+                addRows();
+                addColumns();
+            }
+        }
+        for (var i = 0; i < table.rows.length; i++) {
+            var currentRow = table.rows[i];
+            var cells = currentRow.getElementsByTagName("td");
+            for (var j = 0; j < cells.length; j++) {
+                // generate random number between 0 and 1
+                   const u1 = Math.random();
+                   const u2 = Math.random();
+    
+                    const z0 = Math.abs(Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2));
+                    
+                cells[j].innerHTML = z0;
+            }
+        }
+        var data = readTable(table);
+        var colours=calculateColours(data); //remake displays
+        drawColours(colours,table);
+        doUpdate();
+    }
+        function fillRandom(){
         //fill the table with random values
         var table = document.getElementById("table");
         // if the table is empty, add a row and column until its 4x4
@@ -162,7 +217,6 @@
         drawColours(colours,table);
         doUpdate();
     }
-    
     function drawColours(colours,table){
         // draw the colours on the table
         // colours is a list of lists of hex values
@@ -382,6 +436,9 @@
     <option value="32">32</option>
   </select>
 <button type="button" class="b" id="fill_rand" onclick="fillRandom()">Fill with Random</button>
+<button type="button" class="b" id="fill_norm" onclick="fillNormal()">Fill with Normal</button>
+<button type="button" class="b" id="fill_halfnorm" onclick="fillHalfNormal()">Fill with HalfNormal</button>
+
 <div class="tooltip">How To use...
     <span class="tooltiptext">Build the table with rows and columns and 
         watch how different LSA approximations perform<br>  
